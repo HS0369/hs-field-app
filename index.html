@@ -130,12 +130,23 @@ function uploadPhoto(id){
     return;
   }
 
-  alert("📸 Photo selected: " + file.name);
+  var reader = new FileReader();
+
+  reader.onload = function(){
+    var base64 = reader.result.split(",")[1];
+
+    fetch(`${SCRIPT_URL}?action=uploadPhoto&id=${id}&file=${base64}`)
+    .then(res => res.text())
+    .then(res => {
+
+      if(res.includes("SUCCESS")){
+        alert("📸 Photo Uploaded");
+      } else {
+        alert("Upload failed: " + res);
+      }
+
+    });
+  };
+
+  reader.readAsDataURL(file);
 }
-
-// 🚫 AUTO LOGIN REMOVED (IMPORTANT)
-
-</script>
-
-</body>
-</html>
