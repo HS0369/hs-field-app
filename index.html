@@ -71,7 +71,12 @@ function loadData(mobile){
       Amount: ₹${d.amount}<br><br>
 
       <input id="pay_${d.id}" placeholder="Enter Payment ₹"><br>
-      <button onclick="submitPayment('${d.id}')">💰 Save Payment</button>
+      <button onclick="submitPayment('${d.id}')">💰 Save Payment</button><br><br>
+
+      📸 Upload Sample Photo:<br>
+      <input type="file" accept="image/*" id="photo_${d.id}"><br>
+      <button onclick="uploadPhoto('${d.id}')">Upload Photo</button>
+
       </div>`;
     });
 
@@ -104,6 +109,20 @@ function submitPayment(id){
   });
 }
 
+// 📸 PHOTO UPLOAD (for now just preview)
+function uploadPhoto(id){
+
+  var fileInput = document.getElementById("photo_"+id);
+  var file = fileInput.files[0];
+
+  if(!file){
+    alert("Select photo first");
+    return;
+  }
+
+  alert("📸 Photo selected: " + file.name);
+}
+
 // AUTO LOGIN
 window.onload = function(){
   var mobile = localStorage.getItem("mobile");
@@ -112,7 +131,7 @@ window.onload = function(){
   }
 }
 
-// SERVICE WORKER REGISTER
+// SERVICE WORKER
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
