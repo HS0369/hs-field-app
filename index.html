@@ -112,31 +112,31 @@ function submitPayment(id){
 }
 
 // 📸 PHOTO UPLOAD
-function uploadPhoto(id){
+function uploadPhoto(file, patientId) {
+  let formData = new FormData();
+  formData.append("file", file);
+  formData.append("id", patientId);
 
-  var fileInput = document.getElementById("photo_"+id);
-  var file = fileInput.files[0];
+  fetch("YOUR_SCRIPT_URL", {
+    method: "POST",
+    body: formData
+  })
+  .then(res => res.text())
+  .then(response => {
+    alert("✅ Photo Uploaded");
 
-  if(!file){
-    alert("Select photo first");
-    return;
-  }
-
-  var reader = new FileReader();
-
-  reader.onload = function(){
-    var base64 = reader.result.split(",")[1];
-
-    fetch(`${SCRIPT_URL}?action=uploadPhoto&id=${id}&file=${base64}`)
-    .then(res => res.text())
-    .then(res => {
-      alert("Photo Uploaded");
-    });
-  };
-
-  reader.readAsDataURL(file);
+    // 🔥 IMPORTANT PART
+    loadPatients();   // ← list refresh
+  })
+  .catch(err => {
+    alert("❌ Upload Failed");
+    console.log(err);
+  });
 }
-
+if(patient.photoUrl){
+  html += `<img src="${patient.photoUrl}" width="100"/>`;
+}
+document.getElementById("fileInput").value = "";
 </script>
 
 </body>
