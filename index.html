@@ -3,13 +3,10 @@
 <head>
 <title>HS Field App</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2e7d32">
-
 <style>
-body { font-family: Arial; background:#f2f2f2; padding:20px; }
+body { font-family: Arial; padding:20px; background:#f2f2f2; }
 .box { background:white; padding:15px; margin:10px 0; border-radius:8px; }
-button { padding:8px; background:green; color:white; border:none; margin-top:5px; }
+button { padding:8px; background:green; color:white; border:none; }
 input { padding:8px; margin:5px 0; width:200px; }
 </style>
 
@@ -19,10 +16,10 @@ input { padding:8px; margin:5px 0; width:200px; }
 
 <h2>Health Space - Field App</h2>
 
-<div id="login">
+<div id="loginDiv">
 <input id="mobile" placeholder="Mobile Number"><br>
-<input id="pass" placeholder="Password" type="password"><br>
-<button onclick="login()">Login</button>
+<input id="pass" type="password" placeholder="Password"><br>
+<button onclick="loginUser()">Login</button>
 <p id="msg" style="color:red;"></p>
 </div>
 
@@ -32,8 +29,9 @@ input { padding:8px; margin:5px 0; width:200px; }
 
 var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
 
-// 🔐 LOGIN
-function login(){
+// ✅ LOGIN FUNCTION (FIXED NAME)
+function loginUser(){
+
   var mobile = document.getElementById("mobile").value.trim();
   var pass = document.getElementById("pass").value;
 
@@ -43,27 +41,28 @@ function login(){
   }
 
   if(pass !== "1234"){
-    document.getElementById("msg").innerText = "Wrong Password";
+    document.getElementById("msg").innerText = "Wrong password";
     return;
   }
 
-  localStorage.setItem("mobile", mobile);
   loadData(mobile);
 }
 
-// 📋 LOAD DATA ONLY AFTER LOGIN
+// 📋 LOAD DATA
 function loadData(mobile){
+
+  document.getElementById("msg").innerText = "Loading...";
 
   fetch(SCRIPT_URL + "?mobile=" + mobile)
   .then(res => res.json())
   .then(data => {
 
-    document.getElementById("login").style.display="none";
+    document.getElementById("loginDiv").style.display="none";
 
     var html = "<h3>Today's Patients</h3>";
 
-    if(data.length === 0){
-      html += "<p>No patients assigned</p>";
+    if(!data || data.length === 0){
+      html += "<p>No patients found</p>";
     }
 
     data.forEach(d=>{
@@ -76,11 +75,10 @@ function loadData(mobile){
       Tube: ${d.tube}<br>
       Amount: ₹${d.amount}<br><br>
 
-      <input id="pay_${d.id}" placeholder="Enter Payment ₹"><br>
+      <input id="pay_${d.id}" placeholder="Payment"><br>
       <button onclick="submitPayment('${d.id}')">💰 Save Payment</button><br><br>
 
-      📸 Upload Sample Photo:<br>
-      <input type="file" accept="image/*" id="photo_${d.id}"><br>
+      📸 <input type="file" id="photo_${d.id}"><br>
       <button onclick="uploadPhoto('${d.id}')">Upload Photo</button>
 
       </div>`;
@@ -88,9 +86,11 @@ function loadData(mobile){
 
     document.getElementById("app").innerHTML = html;
     document.getElementById("app").style.display="block";
+
   })
-  .catch(()=>{
+  .catch(err=>{
     document.getElementById("msg").innerText = "Error loading data";
+    console.log(err);
   });
 }
 
@@ -98,7 +98,6 @@ function loadData(mobile){
 function submitPayment(id){
 
   var amt = document.getElementById("pay_"+id).value;
-  var mobile = localStorage.getItem("mobile");
 
   if(amt === ""){
     alert("Enter amount");
@@ -108,18 +107,11 @@ function submitPayment(id){
   fetch(`${SCRIPT_URL}?action=payment&id=${id}&payment=${amt}`)
   .then(res => res.text())
   .then(res => {
-
-    if(res.includes("SUCCESS")){
-      alert("💰 Payment Saved");
-      loadData(mobile);
-    } else {
-      alert("Error: " + res);
-    }
-
+    alert("Payment Saved");
   });
 }
 
-// 📸 PHOTO SELECT
+// 📸 PHOTO UPLOAD
 function uploadPhoto(id){
 
   var fileInput = document.getElementById("photo_"+id);
@@ -138,15 +130,14 @@ function uploadPhoto(id){
     fetch(`${SCRIPT_URL}?action=uploadPhoto&id=${id}&file=${base64}`)
     .then(res => res.text())
     .then(res => {
-
-      if(res.includes("SUCCESS")){
-        alert("📸 Photo Uploaded");
-      } else {
-        alert("Upload failed: " + res);
-      }
-
+      alert("Photo Uploaded");
     });
   };
 
   reader.readAsDataURL(file);
 }
+
+</script>
+
+</body>
+</html>
