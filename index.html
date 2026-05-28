@@ -32,6 +32,7 @@ input { padding:8px; margin:5px 0; width:200px; }
 
 var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
 
+// 🔐 LOGIN
 function login(){
   var mobile = document.getElementById("mobile").value.trim();
   var pass = document.getElementById("pass").value;
@@ -50,6 +51,7 @@ function login(){
   loadData(mobile);
 }
 
+// 📋 LOAD DATA ONLY AFTER LOGIN
 function loadData(mobile){
 
   fetch(SCRIPT_URL + "?mobile=" + mobile)
@@ -59,6 +61,10 @@ function loadData(mobile){
     document.getElementById("login").style.display="none";
 
     var html = "<h3>Today's Patients</h3>";
+
+    if(data.length === 0){
+      html += "<p>No patients assigned</p>";
+    }
 
     data.forEach(d=>{
       html += `
@@ -82,9 +88,13 @@ function loadData(mobile){
 
     document.getElementById("app").innerHTML = html;
     document.getElementById("app").style.display="block";
+  })
+  .catch(()=>{
+    document.getElementById("msg").innerText = "Error loading data";
   });
 }
 
+// 💰 PAYMENT
 function submitPayment(id){
 
   var amt = document.getElementById("pay_"+id).value;
@@ -109,7 +119,7 @@ function submitPayment(id){
   });
 }
 
-// 📸 PHOTO UPLOAD (for now just preview)
+// 📸 PHOTO SELECT
 function uploadPhoto(id){
 
   var fileInput = document.getElementById("photo_"+id);
@@ -123,18 +133,7 @@ function uploadPhoto(id){
   alert("📸 Photo selected: " + file.name);
 }
 
-// AUTO LOGIN
-window.onload = function(){
-  var mobile = localStorage.getItem("mobile");
-  if(mobile){
-    loadData(mobile);
-  }
-}
-
-// SERVICE WORKER
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
+// 🚫 AUTO LOGIN REMOVED (IMPORTANT)
 
 </script>
 
