@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>HS Field App</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2e7d32">
+
+<style>
+body { font-family: Arial; background:#f2f2f2; padding:20px; }
+.box { background:white; padding:15px; margin:10px 0; border-radius:8px; }
+button { padding:8px; background:green; color:white; border:none; margin-top:5px; }
+input { padding:8px; margin:5px 0; width:200px; }
+</style>
+
+</head>
+
+<body>
+
+<h2>Health Space - Field App</h2>
+
+<div id="login">
+<input id="mobile" placeholder="Mobile Number"><br>
+<input id="pass" placeholder="Password" type="password"><br>
+<button onclick="login()">Login</button>
+<p id="msg" style="color:red;"></p>
+</div>
+
+<div id="app" style="display:none;"></div>
+
+<script>
+
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
+
+function login(){
+  var mobile = document.getElementById("mobile").value.trim();
+  var pass = document.getElementById("pass").value;
+
+  if(mobile === "" || pass === ""){
+    document.getElementById("msg").innerText = "Enter details";
+    return;
+  }
+
+  if(pass !== "1234"){
+    document.getElementById("msg").innerText = "Wrong Password";
+    return;
+  }
+
+  localStorage.setItem("mobile", mobile);
+  loadData(mobile);
+}
+
+function loadData(mobile){
+
+  fetch(SCRIPT_URL + "?mobile=" + mobile)
+  .then(res => res.json())
+  .then(data => {
+
+    document.getElementById("login").style.display="none";
+
+    var html = "<h3>Today's Patients</h3>";
+
+    data.forEach(d=>{
+      html += `
+      <div class="box">
+      <b>${d.name}</b><br>
+      Time: ${d.time}<br>
+      Address: ${d.address}<br>
+      Test: ${d.test}<br>
+      Tube: ${d.tube}<br>
+      Amount: ₹${d.amount}<br><br>
+
+      <input id="pay_${d.id}" placeholder="Enter Payment ₹"><br>
+      <button onclick="submitPayment('${d.id}')">💰 Save Payment</button>
+      </div>`;
+    });
+
+    document.getElementById("app").innerHTML = html;
+    document.getElementById("app").style.display="block";
+  });
+}
+
+function submitPayment(id){
+
+  var amt = document.getElementById("pay_"+id).value;
+  var mobile = localStorage.getItem("mobile");
+
+  if(amt === ""){
+    alert("Enter amount");
+    return;
+  }
+
+  fetch(`${SCRIPT_URL}?action=payment&id=${id}&payment=${amt}`)
+  .then(res => res.text())
+  .then(res => {
+
+    if(res.includes("SUCCESS")){
+      alert("💰 Payment Saved");
+      loadData(mobile);
+    } else {
+      alert("Error: " + res);
+    }
+
+  });
+}
+
+// AUTO LOGIN
+window.onload = function(){
+  var mobile = localStorage.getItem("mobile");
+  if(mobile){
+    loadData(mobile);
+  }
+}
+
+// SERVICE WORKER REGISTER
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+
+</script>
+
+</body>
+</html>
