@@ -108,17 +108,17 @@ function uploadPhoto(id){
   reader.onload = function(){
     var base64 = reader.result.split(",")[1];
 
-    fetch(SCRIPT_URL, {
+    fetch("https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec", {
       method: "POST",
       body: new URLSearchParams({
         file: base64,
         id: id
       })
     })
-    .then(res => res.text())   // 🔴 CHANGE HERE
+    .then(res => res.text())   // 🔴 IMPORTANT CHANGE
     .then(response => {
 
-      console.log("SERVER:", response);
+      console.log("SERVER RESPONSE:", response);
 
       if(response.includes("success")){
         alert("Uploaded");
