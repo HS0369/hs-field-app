@@ -6,8 +6,9 @@
 <style>
 body { font-family: Arial; padding:20px; background:#f2f2f2; }
 .box { background:white; padding:15px; margin:10px 0; border-radius:8px; }
-button { padding:8px; background:green; color:white; border:none; }
+button { padding:8px; background:green; color:white; border:none; margin-top:5px; }
 input { padding:8px; margin:5px 0; width:200px; }
+img { margin-top:10px; border-radius:6px; }
 </style>
 
 </head>
@@ -16,6 +17,7 @@ input { padding:8px; margin:5px 0; width:200px; }
 
 <h2>Health Space - Field App</h2>
 
+<!-- LOGIN -->
 <div id="loginDiv">
 <input id="mobile" placeholder="Mobile Number"><br>
 <input id="pass" type="password" placeholder="Password"><br>
@@ -23,35 +25,34 @@ input { padding:8px; margin:5px 0; width:200px; }
 <p id="msg" style="color:red;"></p>
 </div>
 
+<!-- APP -->
 <div id="app" style="display:none;"></div>
 
 <script>
 
 var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
 
-// ✅ LOGIN FUNCTION (FIXED NAME)
+// LOGIN
 function loginUser(){
-
   var mobile = document.getElementById("mobile").value.trim();
   var pass = document.getElementById("pass").value;
 
-  if(mobile === "" || pass === ""){
-    document.getElementById("msg").innerText = "Enter details";
+  if(mobile=="" || pass==""){
+    document.getElementById("msg").innerText="Enter details";
     return;
   }
 
-  if(pass !== "1234"){
-    document.getElementById("msg").innerText = "Wrong password";
+  if(pass!="1234"){
+    document.getElementById("msg").innerText="Wrong password";
     return;
   }
 
+  localStorage.setItem("mobile", mobile);
   loadData(mobile);
 }
 
-// 📋 LOAD DATA
+// LOAD DATA
 function loadData(mobile){
-
-  document.getElementById("msg").innerText = "Loading...";
 
   fetch(SCRIPT_URL + "?mobile=" + mobile)
   .then(res => res.json())
@@ -59,66 +60,55 @@ function loadData(mobile){
 
     document.getElementById("loginDiv").style.display="none";
 
-    var html = "<h3>Today's Patients</h3>";
+    var html = "<h3>Patients</h3>";
 
-    if(!data || data.length === 0){
-      html += "<p>No patients found</p>";
+    if(data.length==0){
+      html += "No patients";
     }
 
     data.forEach(d=>{
+
       html += `
       <div class="box">
       <b>${d.name}</b><br>
       Time: ${d.time}<br>
       Address: ${d.address}<br>
       Test: ${d.test}<br>
-      Tube: ${d.tube}<br>
       Amount: ₹${d.amount}<br><br>
 
-      <input id="pay_${d.id}" placeholder="Payment"><br>
-      <button onclick="submitPayment('${d.id}')">💰 Save Payment</button><br><br>
-
-      📸 <input type="file" id="photo_${d.id}"><br>
+      <input type="file" id="photo_${d.id}"><br>
       <button onclick="uploadPhoto('${d.id}')">Upload Photo</button>
+      `;
 
-      </div>`;
+      // IMAGE DISPLAY
+      if(d.photo){
+        html += `<br><img src="${d.photo}" width="120">`;
+      }
+
+      html += `</div>`;
     });
 
     document.getElementById("app").innerHTML = html;
     document.getElementById("app").style.display="block";
-
-  })
-  .catch(err=>{
-    document.getElementById("msg").innerText = "Error loading data";
-    console.log(err);
   });
 }
 
-// 💰 PAYMENT
-function submitPayment(id){
+// UPLOAD PHOTO
+function uploadPhoto(id){
 
-  var amt = document.getElementById("pay_"+id).value;
+  var file = document.getElementById("photo_"+id).files[0];
 
-  if(amt === ""){
-    alert("Enter amount");
+  if(!file){
+    alert("Select photo");
     return;
   }
 
-  fetch(`${SCRIPT_URL}?action=payment&id=${id}&payment=${amt}`)
-  .then(res => res.text())
-  .then(res => {
-    alert("Payment Saved");
-  });
-}
+  var reader = new FileReader();
 
-// 📸 PHOTO UPLOAD
-function uploadPhoto(file, id) {
-  let reader = new FileReader();
+  reader.onload = function(){
+    var base64 = reader.result.split(",")[1];
 
-  reader.onload = function() {
-    let base64 = reader.result.split(',')[1];
-
-    fetch("YOUR_SCRIPT_URL", {
+    fetch(SCRIPT_URL, {
       method: "POST",
       body: new URLSearchParams({
         file: base64,
@@ -127,24 +117,20 @@ function uploadPhoto(file, id) {
     })
     .then(res => res.json())
     .then(data => {
-      if(data.status === "success") {
-        alert("✅ Upload Success");
-        loadPatients();
-      } else {
-        alert("❌ Upload Failed: " + data.message);
+
+      if(data.status=="success"){
+        alert("Uploaded");
+        loadData(localStorage.getItem("mobile"));
+      }else{
+        alert("Failed");
       }
-    })
-    .catch(err => {
-      alert("❌ Error");
-      console.log(err);
+
     });
   };
 
   reader.readAsDataURL(file);
-}if(patient.photoUrl){
-  html += `<img src="${patient.photoUrl}" width="100"/>`;
 }
-document.getElementById("fileInput").value = "";
+
 </script>
 
 </body>
