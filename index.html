@@ -123,13 +123,17 @@ function uploadPhoto(file, patientId) {
   })
   .then(res => res.text())
   .then(response => {
-    alert("✅ Photo Uploaded");
+    console.log("SERVER RESPONSE:", response);
 
-    // 🔥 IMPORTANT PART
-    loadPatients();   // ← list refresh
+    if(response.includes("success")) {
+      alert("✅ Photo Uploaded Successfully");
+      loadPatients(); // refresh list
+    } else {
+      alert("❌ Upload Failed");
+    }
   })
   .catch(err => {
-    alert("❌ Upload Failed");
+    alert("❌ Upload Error");
     console.log(err);
   });
 }
