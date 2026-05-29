@@ -1,142 +1,147 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HS Field App</title>
 
 <style>
-body { font-family: Arial; padding:20px; background:#f2f2f2; }
-.box { background:white; padding:15px; margin:10px 0; border-radius:8px; }
-button { padding:8px; background:green; color:white; border:none; margin-top:5px; }
-input { padding:8px; margin:5px 0; width:200px; }
-img { margin-top:10px; border-radius:6px; }
+body { font-family: Arial; padding: 10px; }
+.box { background: #fff; padding: 10px; margin: 10px 0; border-radius: 8px; }
+input { padding: 8px; width: 100%; margin: 5px 0; }
+button { padding: 8px; background: green; color: #fff; border: none; }
+img { width: 100px; margin-top: 5px; }
 </style>
 
 </head>
-
 <body>
 
-<h2>Health Space - Field App</h2>
-
-<!-- LOGIN -->
-<div id="loginDiv">
-<input id="mobile" placeholder="Mobile Number"><br>
-<input id="pass" type="password" placeholder="Password"><br>
-<button onclick="loginUser()">Login</button>
-<p id="msg" style="color:red;"></p>
+<div id="login">
+  <h3>Login</h3>
+  <input id="mobile" placeholder="Enter Mobile">
+  <button onclick="login()">Login</button>
 </div>
 
-<!-- APP -->
-<div id="app" style="display:none;"></div>
+<div id="app" style="display:none;">
+  <h3>Patients</h3>
+  <div id="list"></div>
+</div>
 
 <script>
 
-var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
+var API = "PUT_YOUR_SCRIPT_URL";
 
-// LOGIN
-function loginUser(){
-  var mobile = document.getElementById("mobile").value.trim();
-  var pass = document.getElementById("pass").value;
+// 🟢 LOGIN
+function login(){
 
-  if(mobile=="" || pass==""){
-    document.getElementById("msg").innerText="Enter details";
-    return;
-  }
+  var mobile = document.getElementById("mobile").value;
 
-  if(pass!="1234"){
-    document.getElementById("msg").innerText="Wrong password";
-    return;
-  }
-
-  localStorage.setItem("mobile", mobile);
-  loadData(mobile);
-}
-
-// LOAD DATA
-function loadData(mobile){
-
-  fetch(SCRIPT_URL + "?mobile=" + mobile)
-  .then(res => res.text())
+  fetch(API + "?mobile=" + mobile)
+  .then(res => res.json())
   .then(data => {
 
-    document.getElementById("loginDiv").style.display="none";
+    if(data.length > 0){
 
-    var html = "<h3>Patients</h3>";
+      localStorage.setItem("mobile", mobile);
 
-    if(data.length==0){
-      html += "No patients";
+      document.getElementById("login").style.display = "none";
+      document.getElementById("app").style.display = "block";
+
+      render(data);
+
+    } else {
+      alert("No data found");
     }
 
-    data.forEach(d=>{
-
-      html += `
-      <div class="box">
-      <b>${d.name}</b><br>
-      Time: ${d.time}<br>
-      Address: ${d.address}<br>
-      Test: ${d.test}<br>
-      Amount: ₹${d.amount}<br><br>
-
-      <input type="file" id="photo_${d.id}"><br>
-      <button onclick="uploadPhoto('${d.id}')">Upload Photo</button>
-      `;
-
-      // IMAGE DISPLAY
-      if(d.photo){
-        html += `<br><img src="${d.photo}" width="120">`;
-      }
-
-      html += `</div>`;
-    });
-
-    document.getElementById("app").innerHTML = html;
-    document.getElementById("app").style.display="block";
   });
 }
 
-// UPLOAD PHOTO
-function uploadPhoto(id){
 
-  var file = document.getElementById("photo_"+id).files[0];
+// 🟢 RENDER
+function render(data){
 
-  if(!file){
-    alert("Select photo");
-    return;
-  }
+  var html = "";
+
+  data.forEach(p => {
+
+    html += `
+    <div class="box">
+      <b>${p.name}</b><br>
+      Amount: ₹${p.amount}<br>
+
+      <input id="pay_${p.row}" placeholder="Enter Payment">
+      <button onclick="savePayment(${p.row})">Save Payment</button><br><br>
+
+      <input type="file" id="file_${p.row}">
+      <button onclick="uploadPhoto(${p.row})">Upload Photo</button><br>
+
+      ${p.photo ? `<img src="${p.photo}">` : ""}
+    </div>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+}
+
+
+// 🟢 PAYMENT
+function savePayment(row){
+
+  var amount = document.getElementById("pay_"+row).value;
+
+  fetch(API, {
+    method: "POST",
+    body: new URLSearchParams({
+      action: "payment",
+      row: row,
+      amount: amount
+    })
+  })
+  .then(res => res.text())
+  .then(r=>{
+    if(r=="success"){
+      alert("Saved");
+    } else {
+      alert("Failed");
+    }
+  });
+
+}
+
+
+// 🟢 PHOTO
+function uploadPhoto(row){
+
+  var file = document.getElementById("file_"+row).files[0];
 
   var reader = new FileReader();
 
   reader.onload = function(){
+
     var base64 = reader.result.split(",")[1];
 
-    fetch("https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec", {
+    fetch(API, {
       method: "POST",
       body: new URLSearchParams({
-        file: base64,
-        id: id
+        action: "upload",
+        row: row,
+        file: base64
       })
     })
-    .then(res => res.text())   // 🔴 IMPORTANT CHANGE
-    .then(response => {
-
-      console.log("SERVER RESPONSE:", response);
-
-      if(response.includes("success")){
+    .then(res => res.text())
+    .then(r=>{
+      if(r=="success"){
         alert("Uploaded");
-        loadData(localStorage.getItem("mobile"));
+        location.reload();
       } else {
         alert("Failed");
       }
-
-    })
-    .catch(err=>{
-      console.log(err);
-      alert("Error");
     });
 
   };
 
   reader.readAsDataURL(file);
 }
+
 </script>
 
 </body>
