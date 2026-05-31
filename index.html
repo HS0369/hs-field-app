@@ -32,29 +32,32 @@ img { width: 100px; margin-top: 5px; }
 var API = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
 
 // LOGIN
-function login(){
-
+function login() {
   var mobile = document.getElementById("mobile").value;
-  var password = document.getElementById("password").value;
 
-  fetch(API + "?mobile=" + mobile + "&password=" + password)
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "login",
+      mobile: mobile
+    })
+  })
   .then(res => res.json())
   .then(data => {
+    console.log(data); // 🔥 IMPORTANT
 
-    if(data.length > 0){
-
-      document.getElementById("login").style.display = "none";
-      document.getElementById("app").style.display = "block";
-
-      render(data);
-
+    if (data.status === "success") {
+      alert("Login success");
+      showPatients(data.data);
     } else {
       alert("Invalid login or no data");
     }
-
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error loading data");
   });
 }
-
 
 // RENDER
 function render(data){
