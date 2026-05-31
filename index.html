@@ -33,7 +33,11 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3
 
 // LOGIN
 function login() {
+
+  alert("Button clicked"); // 🔥 TEST 1
+
   var mobile = document.getElementById("mobile").value;
+  console.log("Mobile:", mobile); // 🔥 TEST 2
 
   fetch(API_URL, {
     method: "POST",
@@ -42,23 +46,34 @@ function login() {
       mobile: mobile
     })
   })
-  .then(res => res.json())
+  .then(res => {
+    console.log("Raw response:", res); // 🔥 TEST 3
+    return res.text(); // 🔥 JSON नको, first text बघू
+  })
   .then(data => {
-    console.log(data); // 🔥 IMPORTANT
+    console.log("Response text:", data); // 🔥 FINAL TRUTH
 
-    if (data.status === "success") {
-      alert("Login success");
-      showPatients(data.data);
-    } else {
-      alert("Invalid login or no data");
+    try {
+      let json = JSON.parse(data);
+      console.log("Parsed JSON:", json);
+
+      if (json.status === "success") {
+        alert("Login success");
+      } else {
+        alert("Invalid login");
+      }
+
+    } catch (e) {
+      alert("Not JSON response");
     }
+
   })
   .catch(err => {
-    console.error(err);
-    alert("Error loading data");
+    console.error("Fetch error:", err);
+    alert("Fetch failed");
   });
 }
-  <script>
+    <script>
     
 // RENDER
 function render(data){
