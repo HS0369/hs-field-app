@@ -71,7 +71,8 @@ function render(data) {
     Time: ${row[2]}<br>
     Amount: ₹${row[8]}<br>
 
-    <input id="pay_${i}" placeholder="Enter Amount">
+    <input id="pay_${index}"> 
+<placeholder="Enter Amount">
     <button onclick="savePayment(${row[0]})">Save Payment</button>
   </div>
 `;
