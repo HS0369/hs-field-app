@@ -26,10 +26,10 @@ img { width: 100px; margin-top: 5px; }
   <h3>Patients</h3>
   <div id="list"></div>
 </div>
-
-<script>
-
-var API = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
+  
+  <script>
+    
+const API_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
 
 // LOGIN
 function login() {
@@ -58,7 +58,8 @@ function login() {
     alert("Error loading data");
   });
 }
-
+  <script>
+    
 // RENDER
 function render(data){
 
