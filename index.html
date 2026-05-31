@@ -32,66 +32,44 @@ img { width: 100px; margin-top: 5px; }
     
 const API_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
 
-// LOGIN
 function login() {
 
   var mobile = document.getElementById("mobile").value;
 
-  fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/plain"
-    },
-    body: JSON.stringify({
-      action: "login",
-      mobile: mobile
-    })
-  })
-  .then(res => res.text())
+  fetch(API_URL + "?mobile=" + mobile)
+  .then(res => res.json())
   .then(data => {
+
     console.log(data);
 
-    try {
-      let json = JSON.parse(data);
-
-      if(json.status === "success"){
-        alert("Login success");
-      } else {
-        alert("Invalid login");
-      }
-
-    } catch(e){
-      alert("Server error");
-    }
-
+    if (data.length > 0) {
+  render(data);
+} else {
+  alert("No data");
+}
   })
   .catch(err => {
     console.log(err);
-    alert("Connection failed");
+    alert("Error loading data");
   });
 }
     <script>
     
 // RENDER
-function render(data){
+function render(data) {
 
   var html = "";
 
-  data.forEach(p => {
+  data.forEach(function(row){
 
     html += `
-    <div class="box">
-      <b>${p.name}</b><br>
-      Amount: ₹${p.amount}<br>
-
-      <input id="pay_${p.row}" placeholder="Enter Payment">
-      <button onclick="savePayment(${p.row})">Save Payment</button><br><br>
-
-      <input type="text" id="phone_${p.row}">
-      <button onclick="uploadPhoto(${p.row})">Upload Photo</button><br>
-
-      ${p.photo ? `<img src="${p.photo}">` : ""}
-    </div>
+      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+        <b>${row[1]}</b><br>
+        Time: ${row[2]}<br>
+        Address: ${row[3]}<br>
+        Test: ${row[4]}<br>
+        Amount: ₹${row[8]}
+      </div>
     `;
   });
 
