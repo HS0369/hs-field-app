@@ -1,3 +1,4 @@
+<h1>VERSION FINAL 3</h1>
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,44 +34,40 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3
 
 // LOGIN
 function login() {
-  alert("Clicked");
-}
 
   var mobile = document.getElementById("mobile").value;
-  console.log("Mobile:", mobile); // 🔥 TEST 2
 
   fetch(API_URL, {
     method: "POST",
+    headers: {
+      "Content-Type": "text/plain"
+    },
     body: JSON.stringify({
       action: "login",
       mobile: mobile
     })
   })
-  .then(res => {
-    console.log("Raw response:", res); // 🔥 TEST 3
-    return res.text(); // 🔥 JSON नको, first text बघू
-  })
+  .then(res => res.text())
   .then(data => {
-    console.log("Response text:", data); // 🔥 FINAL TRUTH
+    console.log(data);
 
     try {
       let json = JSON.parse(data);
-      console.log("Parsed JSON:", json);
 
-      if (json.status === "success") {
+      if(json.status === "success"){
         alert("Login success");
       } else {
         alert("Invalid login");
       }
 
-    } catch (e) {
-      alert("Not JSON response");
+    } catch(e){
+      alert("Server error");
     }
 
   })
   .catch(err => {
-    console.error("Fetch error:", err);
-    alert("Fetch failed");
+    console.log(err);
+    alert("Connection failed");
   });
 }
     <script>
