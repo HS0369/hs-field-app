@@ -17,7 +17,8 @@ img { width: 100px; margin-top: 5px; }
 
 <div id="login">
   <h3>Login</h3>
-  <input id="mobile" placeholder="Enter Mobile">
+  <input id="mobile" placeholder="Mobile">
+  <input id="password" placeholder="Password">
   <button onclick="login()">Login</button>
 </div>
 
@@ -28,20 +29,19 @@ img { width: 100px; margin-top: 5px; }
 
 <script>
 
-var API = "https://script.google.com/macros/s/AKfycbxPhibtGN39HcWIZaLIwGS3h9X6qLkVlDr9qTQ4QJIljcQ3IAEeMWCRlZS9x2apiPc/exec";
+var API = "PUT_YOUR_SCRIPT_URL";
 
-// 🟢 LOGIN
+// LOGIN
 function login(){
 
   var mobile = document.getElementById("mobile").value;
+  var password = document.getElementById("password").value;
 
-  fetch(API + "?mobile=" + mobile)
+  fetch(API + "?mobile=" + mobile + "&password=" + password)
   .then(res => res.json())
   .then(data => {
 
     if(data.length > 0){
-
-      localStorage.setItem("mobile", mobile);
 
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
@@ -49,14 +49,14 @@ function login(){
       render(data);
 
     } else {
-      alert("No data found");
+      alert("Invalid login or no data");
     }
 
   });
 }
 
 
-// 🟢 RENDER
+// RENDER
 function render(data){
 
   var html = "";
@@ -83,7 +83,7 @@ function render(data){
 }
 
 
-// 🟢 PAYMENT
+// PAYMENT
 function savePayment(row){
 
   var amount = document.getElementById("pay_"+row).value;
@@ -104,11 +104,10 @@ function savePayment(row){
       alert("Failed");
     }
   });
-
 }
 
 
-// 🟢 PHOTO
+// PHOTO
 function uploadPhoto(row){
 
   var file = document.getElementById("file_"+row).files[0];
