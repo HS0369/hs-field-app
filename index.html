@@ -38,33 +38,26 @@ function login() {
   var mobile = document.getElementById("mobile").value;
 
   fetch(API_URL + "?mobile=" + mobile)
-  .then(res => res.json())
-  .then(res => {
-  console.log("STATUS:", res.status);
-  return res.text();
-})
-.then(data => {
-  console.log("RAW DATA:", data);
+  .then(res => res.text())
+  .then(data => {
+    console.log(data);
 
-    if (data.length > 0) {
+    var json = JSON.parse(data);
 
+    if (json.length > 0) {
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
-
-      render(data);
-
+      render(json);
     } else {
-      alert("No data found");
+      alert("No data");
     }
-
   })
   .catch(err => {
-  console.log("FULL ERROR:", err);
-  alert("Error loading data");
-});
+    console.log(err);
+    alert("Error loading data");
+  });
 }
-
-
+  
 // RENDER
 function render(data) {
 
