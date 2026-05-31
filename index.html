@@ -74,7 +74,7 @@ function render(data){
       <input id="pay_${p.row}" placeholder="Enter Payment">
       <button onclick="savePayment(${p.row})">Save Payment</button><br><br>
 
-      <input type="file" id="file_${p.row}">
+      <input type="text" id="phone_${p.row}">
       <button onclick="uploadPhoto(${p.row})">Upload Photo</button><br>
 
       ${p.photo ? `<img src="${p.photo}">` : ""}
