@@ -66,19 +66,36 @@ function render(data) {
   data.forEach(function(row, index){
 
     html += `
-      <div class="box">
+      <div class="box" onclick="openDetail(${index})">
         <b>${row[1]}</b><br>
-        Time: ${row[2]}<br>
-        Amount: ₹${row[8]}<br>
-
-        <input id="pay_${index}" placeholder="Enter Amount">
+        Date: ${row[0]}<br>
+        Amount: ₹${row[8]}
       </div>
     `;
   });
 
+  window.fullData = data; // 🔥 store globally
+
   document.getElementById("list").innerHTML = html;
 }
-function savePayment(row){
+  <div id="detail" style="display:none;">
+  <h3>Patient Details</h3>
+
+  <div id="detailData"></div>
+
+  <input id="payAmount" placeholder="Enter Payment">
+  <button onclick="savePayment()">Save Payment</button>
+
+  <br><br>
+
+  <input type="file" id="photoFile">
+  <button onclick="uploadPhoto()">Upload Photo</button>
+
+  <br><br>
+  <button onclick="goBack()">Back</button>
+</div>
+  
+  function savePayment(row){
 
   var amount = document.getElementById("pay_"+row).value;
 
