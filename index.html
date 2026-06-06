@@ -77,7 +77,8 @@ function render(data) {
   window.fullData = data; // 🔥 store globally
 
   document.getElementById("list").innerHTML = html;
-}
+} 
+</script>
   <div id="detail" style="display:none;">
   <h3>Patient Details</h3>
 
@@ -94,29 +95,73 @@ function render(data) {
   <br><br>
   <button onclick="goBack()">Back</button>
 </div>
-  
-  function savePayment(row){
+<script>
+  function openDetail(index){
+  var row = window.fullData[index];
+  window.currentRowIndex = index;
 
-  var amount = document.getElementById("pay_"+row).value;
+  document.getElementById("app").style.display = "none";
+  document.getElementById("detail").style.display = "block";
+
+  document.getElementById("detailData").innerHTML = `
+    <b>${row[1]}</b><br>
+    Date: ${row[0]}<br>
+    Time: ${row[2]}<br>
+    Address: ${row[3]}<br>
+    Test: ${row[4]}<br>
+    Amount: ₹${row[8]}
+  `;
+}
+
+function goBack(){
+  document.getElementById("detail").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}
+
+function savePayment(){
+  var amount = document.getElementById("payAmount").value;
+  var rowIndex = window.currentRowIndex + 2;
 
   fetch(API_URL, {
     method: "POST",
     body: new URLSearchParams({
       action: "payment",
-      row: row,
+      row: rowIndex,
       amount: amount
     })
   })
   .then(res => res.text())
   .then(r=>{
-    if(r=="success"){
-      alert("Payment Saved");
-    } else {
-      alert("Failed");
-    }
+    if(r=="success") alert("Saved");
+    else alert("Failed");
   });
 }
-</script>
 
+function uploadPhoto(){
+  var file = document.getElementById("photoFile").files[0];
+  var reader = new FileReader();
+
+  reader.onload = function(){
+    var base64 = reader.result.split(",")[1];
+    var rowIndex = window.currentRowIndex + 2;
+
+    fetch(API_URL, {
+      method: "POST",
+      body: new URLSearchParams({
+        action: "upload",
+        row: rowIndex,
+        file: base64
+      })
+    })
+    .then(res => res.text())
+    .then(r=>{
+      if(r=="success") alert("Uploaded");
+      else alert("Failed");
+    });
+  };
+
+  reader.readAsDataURL(file);
+}
+</script>
 </body>
 </html>
