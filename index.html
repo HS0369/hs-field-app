@@ -5,11 +5,50 @@
 <title>HS Field App</title>
 
 <style>
-body { font-family: Arial; padding: 10px; }
-.box { background: #fff; padding: 10px; margin: 10px 0; border-radius: 8px; }
-input { padding: 8px; width: 100%; margin: 5px 0; }
-button { padding: 8px; background: green; color: #fff; border: none; }
-img { width: 100px; margin-top: 5px; }
+body {
+  font-family: Arial;
+  background: #f5f6fa;
+  margin: 0;
+}
+
+h3 {
+  text-align: center;
+}
+
+.card {
+  background: #fff;
+  padding: 15px;
+  margin: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.title {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.sub {
+  color: #555;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background: #2ecc71;
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
 </style>
 </head>
 
@@ -61,23 +100,23 @@ function login() {
 // RENDER
 function render(data) {
 
-  var html = "";
+  let html = "";
 
-  data.forEach(function(row, index){
+  data.forEach((row, index) => {
+
+    let time = formatTime(row[2]);
 
     html += `
-      <div class="box" onclick="openDetail(${index})">
-        <b>${row[1]}</b><br>
-        Date: ${row[0]}<br>
-        Amount: ₹${row[8]}
+      <div class="card" onclick="openDetail(${index})">
+        <div class="title">${row[1]}</div>
+        <div class="sub">${time} | Tube: ${row[7]}</div>
       </div>
     `;
   });
 
-  window.fullData = data; // 🔥 store globally
-
+  window.fullData = data;
   document.getElementById("list").innerHTML = html;
-} 
+}
 </script>
   <div id="detail" style="display:none;">
   <h3>Patient Details</h3>
@@ -97,22 +136,39 @@ function render(data) {
 </div>
 <script>
   function openDetail(index){
-  var row = window.fullData[index];
+
+  let row = window.fullData[index];
   window.currentRowIndex = index;
 
   document.getElementById("app").style.display = "none";
   document.getElementById("detail").style.display = "block";
 
   document.getElementById("detailData").innerHTML = `
-    <b>${row[1]}</b><br>
-    Date: ${row[1]}<br>
-    Time: ${row[2]}<br>
-    Address: ${row[5]}<br>
-    Test: ${row[6]}<br>
-    Amount: ₹${row[8]}
+    <div class="card">
+      <b>${row[1]}</b><br><br>
+      🕒 Time: ${formatTime(row[2])}<br>
+      📍 Address: ${row[3]}<br>
+      🧪 Test: ${row[4]}<br>
+      🧬 Tube: ${row[7]}<br>
+      💰 Amount: ₹${row[8]}
+    </div>
   `;
 }
+  function formatTime(dateStr){
 
+  let d = new Date(dateStr);
+
+  let hours = d.getHours();
+  let minutes = d.getMinutes();
+
+  let ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+
+  minutes = minutes < 10 ? '0'+minutes : minutes;
+
+  return hours + ':' + minutes + ' ' + ampm;
+}
 function goBack(){
   document.getElementById("detail").style.display = "none";
   document.getElementById("app").style.display = "block";
