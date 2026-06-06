@@ -7,46 +7,56 @@
 <style>
 body {
   font-family: Arial;
-  background: #f5f6fa;
+  background: #f4f6f9;
   margin: 0;
 }
 
-h3 {
+/* HEADER */
+.header {
+  text-align: center;
+  padding: 15px;
+  background: #2ecc71;
+  color: #fff;
+}
+
+.logo {
+  width: 50px;
+}
+
+/* LOGIN BOX */
+.login-box {
+  max-width: 320px;
+  margin: 50px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   text-align: center;
 }
 
+/* CARD LIST */
 .card {
   background: #fff;
-  padding: 15px;
   margin: 10px;
+  padding: 15px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.title {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.sub {
-  color: #555;
-  margin-top: 5px;
-  font-size: 14px;
+/* INPUT + BUTTON */
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
 }
 
 button {
   width: 100%;
   padding: 10px;
-  background: #2ecc71;
-  border: none;
+  background: #27ae60;
   color: #fff;
+  border: none;
   border-radius: 6px;
-  margin-top: 10px;
-}
-
-input {
-  width: 100%;
-  padding: 10px;
   margin-top: 10px;
 }
 </style>
@@ -56,7 +66,7 @@ input {
 
 <h2>HS Field App</h2>
 
-<div id="login">
+<div id="login" class="login-box">
   <h3>Login</h3>
   <input type="text" id="mobile" placeholder="Enter Mobile">
   <button onclick="login()">Login</button>
