@@ -5,10 +5,10 @@
 <title>HS Field App</title>
 
 <style>
-body 
-  <div class="header">
-  <img src="https://drive.google.com/file/d/1xNX35oNoa9O54b28QnyvgEcdXWHTkhue/view?usp=drive_link" class="logo">
+body <div class="header">
+  <img src="https://drive.google.com/uc?export=view&id=1xNX35oNoa9O54b28QnyvgEcdXWHTkhue" class="logo">
   <h2>HS Field App</h2>
+  <span class="help" onclick="showHelp()">❓</span>
 </div>
   {
   font-family: Arial;
@@ -49,20 +49,45 @@ body
 }
 
 /* INPUT + BUTTON */
-input {
+input, button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   margin-top: 10px;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+.action-btn {
+  width: 100%;
+  padding: 8px;
+  margin-top: 8px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
-button {
-  width: 100%;
-  padding: 10px;
-  background: #27ae60;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  margin-top: 10px;
+.row-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+  .call-btn {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  text-decoration: none;
+  font-size: 20px;
+}
+.card {
+  position: relative;
+}
+  .help {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  font-size: 20px;
+  cursor: pointer;
+}
+.header {
+  position: relative;
 }
 </style>
 </head>
@@ -111,7 +136,9 @@ function login() {
     alert("Error loading data");
   });
 }
-  
+  function showHelp(){
+  alert("Help section coming soon");
+}
 // RENDER
 function render(data) {
 
@@ -119,14 +146,21 @@ function render(data) {
 
   data.forEach((row, index) => {
 
-    let time = formatTime(row[2]);
+    let date = row[1];
+let name = row[3];
+let time = formatTime(row[2]);
+let tube = row[7];
+    let phone = row[9];
 
     html += `
-      <div class="card" onclick="openDetail(${index})">
-        <div class="title">${row[1]}</div>
-        <div class="sub">${time} | Tube: ${row[7]}</div>
-      </div>
-    `;
+<div class="card">
+  <div><b>${date}</b></div>
+  <div>${name}</div>
+  <div>${time}</div>
+  <div>Tube: ${tube}</div>
+  <a href="tel:${phone}" class="call-btn">📞</a>
+</div>
+`;
   });
 
   window.fullData = data;
@@ -161,11 +195,17 @@ function render(data) {
   document.getElementById("detailData").innerHTML = `
     <div class="card">
       <b>${row[1]}</b><br><br>
-      🕒 Time: ${formatTime(row[2])}<br>
-      📍 Address: ${row[3]}<br>
-      🧪 Test: ${row[4]}<br>
-      🧬 Tube: ${row[7]}<br>
-      💰 Amount: ₹${row[8]}
+       Time: ${formatTime(row[2])}<br>
+       Name: ${row[3]}<br>
+       Address: ${row[5]}<br>
+       Tube: ${row[7]}<br>
+       Amount: ₹${row[8]}
+      <div class="row-btns">
+  <button class="action-btn">Payment</button>
+  <button class="action-btn">Save</button>
+  <button class="action-btn">Upload</button>
+  <button class="action-btn" onclick="goBack()">Back</button>
+</div>
     </div>
   `;
 }
