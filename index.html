@@ -5,12 +5,7 @@
 <title>HS Field App</title>
 
 <style>
-body <div class="header">
-  <img src="https://drive.google.com/uc?export=view&id=1xNX35oNoa9O54b28QnyvgEcdXWHTkhue" class="logo">
-  <h2>HS Field App</h2>
-  <span class="help" onclick="showHelp()">❓</span>
-</div>
-  {
+body {
   font-family: Arial;
   background: #f4f6f9;
   margin: 0;
@@ -22,13 +17,22 @@ body <div class="header">
   padding: 15px;
   background: #2ecc71;
   color: #fff;
+  position: relative;
 }
 
 .logo {
   width: 50px;
 }
 
-/* LOGIN BOX */
+.help {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* LOGIN */
 .login-box {
   max-width: 320px;
   margin: 50px auto;
@@ -39,13 +43,22 @@ body <div class="header">
   text-align: center;
 }
 
-/* CARD LIST */
+/* CARD */
 .card {
   background: #fff;
   margin: 10px;
   padding: 15px;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+.call-btn {
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  text-decoration: none;
+  font-size: 20px;
 }
 
 /* INPUT + BUTTON */
@@ -56,55 +69,54 @@ input, button {
   border-radius: 6px;
   box-sizing: border-box;
 }
-.action-btn {
-  width: 100%;
-  padding: 8px;
-  margin-top: 8px;
-  border-radius: 6px;
-  font-size: 14px;
-}
 
 .row-btns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
-  .call-btn {
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  text-decoration: none;
-  font-size: 20px;
-}
-.card {
-  position: relative;
-}
-  .help {
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  font-size: 20px;
-  cursor: pointer;
-}
-.header {
-  position: relative;
+
+.action-btn {
+  padding: 8px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>HS Field App</h2>
+<!-- HEADER -->
+<div class="header">
+  <img src="https://drive.google.com/uc?export=view&id=1xNX35oNoa9O54b28QnyvgEcdXWHTkhue" class="logo">
+  <h2>HS Field App</h2>
+  <span class="help" onclick="showHelp()">❓</span>
+</div>
 
+<!-- LOGIN -->
 <div id="login" class="login-box">
   <h3>Login</h3>
   <input type="text" id="mobile" placeholder="Enter Mobile">
   <button onclick="login()">Login</button>
 </div>
 
+<!-- LIST -->
 <div id="app" style="display:none;">
-  <h3>Patients</h3>
+  <h3 style="text-align:center;">Patients</h3>
   <div id="list"></div>
+</div>
+
+<!-- DETAIL -->
+<div id="detail" style="display:none;">
+  <h3 style="text-align:center;">Patient Details</h3>
+
+  <div id="detailData"></div>
+
+  <input id="payAmount" placeholder="Enter Payment">
+  <button onclick="savePayment()">Save Payment</button>
+
+  <input type="file" id="photoFile">
+  <button onclick="uploadPhoto()">Upload Photo</button>
+
+  <button onclick="goBack()">Back</button>
 </div>
 
 <script>
@@ -119,7 +131,6 @@ function login() {
   fetch(API_URL + "?mobile=" + mobile)
   .then(res => res.text())
   .then(data => {
-    console.log(data);
 
     var json = JSON.parse(data);
 
@@ -130,16 +141,20 @@ function login() {
     } else {
       alert("No data");
     }
+
   })
   .catch(err => {
     console.log(err);
     alert("Error loading data");
   });
 }
-  function showHelp(){
+
+// HELP
+function showHelp(){
   alert("Help section coming soon");
 }
-// RENDER
+
+// RENDER LIST
 function render(data) {
 
   let html = "";
@@ -147,44 +162,29 @@ function render(data) {
   data.forEach((row, index) => {
 
     let date = row[1];
-let name = row[3];
-let time = formatTime(row[2]);
-let tube = row[7];
+    let name = row[3];
+    let time = formatTime(row[2]);
+    let tube = row[7];
     let phone = row[9];
 
     html += `
-<div class="card">
-  <div><b>${date}</b></div>
-  <div>${name}</div>
-  <div>${time}</div>
-  <div>Tube: ${tube}</div>
-  <a href="tel:${phone}" class="call-btn">📞</a>
-</div>
-`;
+    <div class="card" onclick="openDetail(${index})">
+      <div><b>${date}</b></div>
+      <div>${name}</div>
+      <div>${time}</div>
+      <div>Tube: ${tube}</div>
+
+      <a href="tel:${phone}" class="call-btn">📞</a>
+    </div>
+    `;
   });
 
   window.fullData = data;
   document.getElementById("list").innerHTML = html;
 }
-</script>
-  <div id="detail" style="display:none;">
-  <h3>Patient Details</h3>
 
-  <div id="detailData"></div>
-
-  <input id="payAmount" placeholder="Enter Payment">
-  <button onclick="savePayment()">Save Payment</button>
-
-  <br><br>
-
-  <input type="file" id="photoFile">
-  <button onclick="uploadPhoto()">Upload Photo</button>
-
-  <br><br>
-  <button onclick="goBack()">Back</button>
-</div>
-<script>
-  function openDetail(index){
+// DETAIL
+function openDetail(index){
 
   let row = window.fullData[index];
   window.currentRowIndex = index;
@@ -194,41 +194,35 @@ let tube = row[7];
 
   document.getElementById("detailData").innerHTML = `
     <div class="card">
-      <b>${row[1]}</b><br><br>
-       Time: ${formatTime(row[2])}<br>
-       Name: ${row[3]}<br>
-       Address: ${row[5]}<br>
-       Tube: ${row[7]}<br>
-       Amount: ₹${row[8]}
-      <div class="row-btns">
-  <button class="action-btn">Payment</button>
-  <button class="action-btn">Save</button>
-  <button class="action-btn">Upload</button>
-  <button class="action-btn" onclick="goBack()">Back</button>
-</div>
+      <b>${row[3]}</b><br><br>
+      Time: ${formatTime(row[2])}<br>
+      Address: ${row[5]}<br>
+      Tube: ${row[7]}<br>
+      Amount: ₹${row[8]}
     </div>
   `;
 }
-  function formatTime(dateStr){
 
+// TIME FORMAT
+function formatTime(dateStr){
   let d = new Date(dateStr);
+  let h = d.getHours();
+  let m = d.getMinutes();
 
-  let hours = d.getHours();
-  let minutes = d.getMinutes();
+  let ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  m = m < 10 ? '0'+m : m;
 
-  let ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-
-  minutes = minutes < 10 ? '0'+minutes : minutes;
-
-  return hours + ':' + minutes + ' ' + ampm;
+  return h + ':' + m + ' ' + ampm;
 }
+
+// BACK
 function goBack(){
   document.getElementById("detail").style.display = "none";
   document.getElementById("app").style.display = "block";
 }
 
+// PAYMENT
 function savePayment(){
   var amount = document.getElementById("payAmount").value;
   var rowIndex = window.currentRowIndex + 2;
@@ -243,11 +237,11 @@ function savePayment(){
   })
   .then(res => res.text())
   .then(r=>{
-    if(r=="success") alert("Saved");
-    else alert("Failed");
+    alert(r=="success" ? "Saved" : "Failed");
   });
 }
 
+// PHOTO
 function uploadPhoto(){
   var file = document.getElementById("photoFile").files[0];
   var reader = new FileReader();
@@ -266,13 +260,14 @@ function uploadPhoto(){
     })
     .then(res => res.text())
     .then(r=>{
-      if(r=="success") alert("Uploaded");
-      else alert("Failed");
+      alert(r=="success" ? "Uploaded" : "Failed");
     });
   };
 
   reader.readAsDataURL(file);
 }
+
 </script>
+
 </body>
 </html>
