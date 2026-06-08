@@ -13,46 +13,24 @@ body {
 
 /* HEADER */
 .header {
-  text-align: center;
-  padding: 15px;
-  background: #2ecc71;
-  color: #fff;
-  position: relative;
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  color: white;
 }
 
-.logo {
-  width: 50px;
+button {
+  background: #00b894;
+  color: white;
+  border: none;
+  font-weight: bold;
 }
 
-.help {
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  font-size: 20px;
-  cursor: pointer;
+button:hover {
+  background: #019875;
 }
 
-/* LOGIN */
-.login-box {
-  max-width: 320px;
-  margin: 50px auto;
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  text-align: center;
-}
-
-/* CARD */
 .card {
-  background: #fff;
-  margin: 10px;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  position: relative;
-}
-
+  border-left: 5px solid #00b894;
+} 
 .call-btn {
   position: absolute;
   right: 15px;
@@ -79,6 +57,10 @@ input, button {
 .action-btn {
   padding: 8px;
 }
+  .help {
+  font-size: 22px;
+  font-weight: bold;
+}
 </style>
 </head>
 
@@ -86,9 +68,9 @@ input, button {
 
 <!-- HEADER -->
 <div class="header">
-  <img src="https://drive.google.com/uc?export=view&id=1xNX35oNoa9O54b28QnyvgEcdXWHTkhue" class="logo">
+  <img src="logo.png" class="logo">
   <h2>HS Field App</h2>
-  <span class="help" onclick="showHelp()">❓</span>
+  <span class="help" onclick="showHelp()">⋮</span>
 </div>
 
 <!-- LOGIN -->
@@ -174,7 +156,7 @@ function render(data) {
       <div>${time}</div>
       <div>Tube: ${tube}</div>
 
-      <a href="tel:${phone}" class="call-btn">📞</a>
+      <a href="tel:${phone}" class="call-btn" onclick="event.stopPropagation()">📞</a>
     </div>
     `;
   });
