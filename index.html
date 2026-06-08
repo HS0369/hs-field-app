@@ -12,25 +12,48 @@ body {
 }
 
 /* HEADER */
-.header {
-  background: linear-gradient(135deg, #00b894, #00cec9);
-  color: white;
+.logo-box {
+  background: #fff;
+  padding: 6px;
+  border-radius: 8px;
+  display: inline-block;
 }
 
-button {
-  background: #00b894;
+.logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+  .header {
+  background: linear-gradient(135deg, #ff7a00, #d81b60);
   color: white;
-  border: none;
+}
+.header h2 {
+  margin: 6px 0 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.call-btn {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  font-size: 18px;
+}
+button {
+  background: #d81b60;
+  color: #fff;
   font-weight: bold;
 }
 
 button:hover {
-  background: #019875;
+  background: #ad1457;
 }
 
 .card {
-  border-left: 5px solid #00b894;
-} 
+  border-left: 4px solid #ff7a00;
+  position: relative;
+}
 .call-btn {
   position: absolute;
   right: 15px;
@@ -68,7 +91,9 @@ input, button {
 
 <!-- HEADER -->
 <div class="header">
-  <img src="logo.png" class="logo">
+  <div class="logo-box">
+    <img src="logo.png" class="logo">
+  </div>
   <h2>HS Field App</h2>
   <span class="help" onclick="showHelp()">⋮</span>
 </div>
@@ -143,11 +168,11 @@ function render(data) {
 
   data.forEach((row, index) => {
 
-    let date = row[1];
+    let date = formatDate(row[1]);
     let name = row[3];
     let time = formatTime(row[2]);
     let tube = row[7];
-    let phone = row[9];
+    let phone = row[4];
 
     html += `
     <div class="card" onclick="openDetail(${index})">
@@ -196,6 +221,15 @@ function formatTime(dateStr){
   m = m < 10 ? '0'+m : m;
 
   return h + ':' + m + ' ' + ampm;
+}
+  function formatDate(dateStr){
+  let d = new Date(dateStr);
+
+  let day = d.getDate().toString().padStart(2,'0');
+  let month = (d.getMonth()+1).toString().padStart(2,'0');
+  let year = d.getFullYear();
+
+  return day + "-" + month + "-" + year;
 }
 
 // BACK
