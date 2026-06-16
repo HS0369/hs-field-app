@@ -134,23 +134,40 @@ function login() {
 
   var mobile = document.getElementById("mobile").value;
 
+  console.log("CALLING API...");
+
   fetch(API_URL + "?mobile=" + mobile)
-  .then(res => res.json())
-  .then(json => {
+  .then(res => {
+    console.log("STATUS:", res.status);
+    return res.text(); // text घेऊ first
+  })
+  .then(text => {
+
+    console.log("RAW RESPONSE:", text);
+
+    try {
+      var json = JSON.parse(text);
+    } catch(e) {
+      alert("❌ API JSON देत नाहीये");
+      return;
+    }
+
+    console.log("PARSED:", json);
 
     if (json.length > 0) {
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
       document.getElementById("dashboard").style.display = "block";
+
       render(json);
     } else {
-      alert("No data");
+      alert("⚠️ No data for this mobile");
     }
 
   })
   .catch(err => {
-    console.log(err);
-    alert("Error loading data");
+    console.log("FETCH ERROR:", err);
+    alert("❌ Error loading data");
   });
 }
 
