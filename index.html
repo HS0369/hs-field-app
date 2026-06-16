@@ -44,6 +44,7 @@ button {
   background: #d81b60;
   color: #fff;
   font-weight: bold;
+  margin-top: 12px;
 }
 
 button:hover {
@@ -104,6 +105,7 @@ input, button {
   <input type="text" id="mobile" placeholder="Enter Mobile">
   <button onclick="login()">Login</button>
 </div>
+  <div class="dashboard" id="dashboard" style="display:none;">
 
 <!-- LIST -->
 <div id="app" style="display:none;">
@@ -144,6 +146,7 @@ function login() {
     if (json.length > 0) {
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
+      document.getElementById("dashboard").style.display = "block";
       render(json);
     } else {
       alert("No data");
@@ -181,11 +184,6 @@ function render(data) {
       <div>${time}</div>
       <div>Tube: ${tube}</div>
 
-      <a href="tel:${phone}" class="call-btn" onclick="event.stopPropagation()">📞</a>
-    </div>
-    `;
-  });
-
   window.fullData = data;
   document.getElementById("list").innerHTML = html;
 }
@@ -199,15 +197,16 @@ function openDetail(index){
   document.getElementById("app").style.display = "none";
   document.getElementById("detail").style.display = "block";
 
-  document.getElementById("detailData").innerHTML = `
-    <div class="card">
-      <b>${row[3]}</b><br><br>
-      Time: ${formatTime(row[2])}<br>
-      Address: ${row[5]}<br>
-      Tube: ${row[7]}<br>
-      Amount: ₹${row[8]}
-    </div>
-  `;
+document.getElementById("detailData").innerHTML = `
+  <div class="card">
+    <b>${row[3]}</b><br><br>
+    📅 ${formatDate(row[1])}<br>
+    🕒 ${formatTime(row[2])}<br>
+    📍 ${row[5]}<br>
+    🧪 Tube: ${row[7]}<br>
+    💰 Amount: ₹${row[8]}
+  </div>
+`;
 }
 
 // TIME FORMAT
