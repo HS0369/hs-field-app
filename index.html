@@ -136,7 +136,7 @@ function login() {
 
   fetch(API_URL + "?mobile=" + mobile)
   .then(res => res.json())
-  .then(data => {
+  .then(json => {
 
     var json = JSON.parse(data);
 
@@ -175,16 +175,21 @@ function render(data) {
     let phone = row[4];
 
     html += `
-    <div class="card" onclick="openDetail(${index})">
-      <div><b>${date}</b></div>
-      <div>${name}</div>
-      <div>${time}</div>
-      <div>Tube: ${tube}</div>
+      <div class="card" onclick="openDetail(${index})">
+        <b>${name}</b><br>
+        📅 ${date}<br>
+        🕒 ${time}<br>
+        🧪 Tube: ${tube}
+
+        <a href="tel:${phone}" class="call-btn" onclick="event.stopPropagation()">📞</a>
+      </div>
+    `;
+  });
 
   window.fullData = data;
   document.getElementById("list").innerHTML = html;
+  document.getElementById("count").innerText = data.length;
 }
-
 // DETAIL
 function openDetail(index){
 
