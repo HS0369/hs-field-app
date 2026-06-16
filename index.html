@@ -7,8 +7,6 @@
 <style>
 body {
   font-family: Arial;
-  background: #f4f6f9;
-  margin: 0;
 }
 
 /* HEADER */
@@ -137,7 +135,7 @@ function login() {
   var mobile = document.getElementById("mobile").value;
 
   fetch(API_URL + "?mobile=" + mobile)
-  .then(res => res.text())
+  .then(res => res.json())
   .then(data => {
 
     var json = JSON.parse(data);
