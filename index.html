@@ -7,81 +7,65 @@
 <style>
 body {
   font-family: Arial;
+  margin: 0;
 }
 
 /* HEADER */
-.logo-box {
-  background: #fff;
-  padding: 6px;
-  border-radius: 8px;
-  display: inline-block;
+.header {
+  background: linear-gradient(135deg, #ff7a00, #d81b60);
+  color: white;
+  text-align: center;
+  padding: 12px;
+  position: relative;
 }
 
 .logo {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
-}
-  .header {
-  background: linear-gradient(135deg, #ff7a00, #d81b60);
-  color: white;
-}
-.header h2 {
-  margin: 6px 0 0;
-  font-size: 18px;
-  font-weight: 600;
+  background: #fff;
+  padding: 6px;
+  border-radius: 10px;
 }
 
-.call-btn {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  font-size: 18px;
-}
-button {
-  background: #d81b60;
-  color: #fff;
-  font-weight: bold;
-  margin-top: 12px;
+/* LOGIN CENTER */
+.login-box {
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
 }
 
-button:hover {
-  background: #ad1457;
-}
-
+/* CARD */
 .card {
   border-left: 4px solid #ff7a00;
+  padding: 10px;
+  margin: 10px;
   position: relative;
-}
-.call-btn {
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  text-decoration: none;
-  font-size: 20px;
+  background: #fff;
+  border-radius: 6px;
 }
 
-/* INPUT + BUTTON */
+/* BUTTONS */
 input, button {
   width: 100%;
   padding: 12px;
   margin-top: 10px;
   border-radius: 6px;
-  box-sizing: border-box;
 }
 
-.row-btns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.action-btn {
-  padding: 8px;
-}
-  .help {
-  font-size: 22px;
+button {
+  background: #d81b60;
+  color: white;
   font-weight: bold;
+}
+
+.call-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 20px;
 }
 </style>
 </head>
@@ -90,11 +74,8 @@ input, button {
 
 <!-- HEADER -->
 <div class="header">
-  <div class="logo-box">
-    <img src="logo.png" class="logo">
-  </div>
-  <h2>HS Field App</h2>
-  <span class="help" onclick="showHelp()">⋮</span>
+  <img src="logo.png" class="logo"><br>
+  <b>HS Field App</b>
 </div>
 
 <!-- LOGIN -->
@@ -106,7 +87,7 @@ input, button {
 
 <!-- LIST -->
 <div id="app" style="display:none;">
-  <h3 style="text-align:center;">Patients</h3>
+  <h3 style="text-align:center;">Patients (<span id="count">0</span>)</h3>
   <div id="list"></div>
 </div>
 
@@ -119,6 +100,8 @@ input, button {
   <input id="payAmount" placeholder="Enter Payment">
   <button onclick="savePayment()">Save Payment</button>
 
+  <p><b>Total Paid: ₹<span id="totalPaid">0</span></b></p>
+
   <input type="file" id="photoFile">
   <button onclick="uploadPhoto()">Upload Photo</button>
 
@@ -127,164 +110,176 @@ input, button {
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
+const API_URL = "YOUR_API_URL";
+
+// ✅ AUTO LOGIN (12 HOURS)
+window.onload = function(){
+  let saved = localStorage.getItem("loginTime");
+  let mobile = localStorage.getItem("mobile");
+
+  if(saved && mobile){
+    let diff = (Date.now() - saved) / (1000 * 60 * 60);
+    if(diff < 12){
+      document.getElementById("mobile").value = mobile;
+      login();
+    }
+  }
+};
 
 // LOGIN
-function login() {
+function login(){
 
-  var mobile = document.getElementById("mobile").value;
+  let mobile = document.getElementById("mobile").value;
 
   fetch(API_URL + "?mobile=" + mobile)
-  .then(res => res.text())
-  .then(text => {
+  .then(res => res.json())
+  .then(data => {
 
-    let json;
+    if(data.length > 0){
 
-    try {
-      json = JSON.parse(text);
-    } catch(e) {
-      alert("API JSON error");
-      return;
-    }
+      localStorage.setItem("loginTime", Date.now());
+      localStorage.setItem("mobile", mobile);
 
-    if (json.length > 0) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("app").style.display = "block";
 
-      let loginBox = document.getElementById("login");
-      let appBox = document.getElementById("app");
-
-      if (loginBox) loginBox.style.display = "none";
-      if (appBox) appBox.style.display = "block";
-
-      render(json);
+      render(data);
 
     } else {
-      alert("No data");
+      alert("No Data");
     }
-
   })
-  .catch(err => {
-    console.log("REAL ERROR:", err);
-    // ❌ alert remove करा temporarily
+  .catch(err=>{
+    alert("Loading Error");
+    console.log(err);
   });
 }
-  // HELP
-function showHelp(){
-  alert("Help section coming soon");
-}
 
-// RENDER LIST
-function render(data) {
+// RENDER
+function render(data){
 
   let html = "";
 
-  data.forEach((row, index) => {
-
-    let date = formatDate(row[1]);
-    let name = row[3];
-    let time = formatTime(row[2]);
-    let tube = row[7];
-    let phone = row[4];
+  data.forEach((row, i)=>{
 
     html += `
-      <div class="card" onclick="openDetail(${index})">
-        <b>${name}</b><br>
-        📅 ${date}<br>
-        🕒 ${time}<br>
-        🧪 Tube: ${tube}
-
-        <a href="tel:${phone}" class="call-btn" onclick="event.stopPropagation()">📞</a>
-      </div>
-    `;
+    <div class="card" onclick="openDetail(${i})">
+      <b>${row[3]}</b><br>
+      📅 ${formatDate(row[1])}<br>
+      🕒 ${formatTime(row[2])}<br>
+      🧪 Tube: ${row[7]}
+      <a href="tel:${row[4]}" class="call-btn" onclick="event.stopPropagation()">📞</a>
+    </div>`;
   });
 
   window.fullData = data;
   document.getElementById("list").innerHTML = html;
   document.getElementById("count").innerText = data.length;
 }
-// DETAIL
-function openDetail(index){
 
-  let row = window.fullData[index];
-  window.currentRowIndex = index;
+// DETAIL
+function openDetail(i){
+
+  let row = window.fullData[i];
+  window.currentRowIndex = i;
 
   document.getElementById("app").style.display = "none";
   document.getElementById("detail").style.display = "block";
 
-document.getElementById("detailData").innerHTML = `
+  let total = row[8] || 0;
+
+  document.getElementById("totalPaid").innerText = total;
+
+  document.getElementById("detailData").innerHTML = `
   <div class="card">
     <b>${row[3]}</b><br><br>
     📅 ${formatDate(row[1])}<br>
     🕒 ${formatTime(row[2])}<br>
     📍 ${row[5]}<br>
     🧪 Tube: ${row[7]}<br>
-    💰 Amount: ₹${row[8]}
-  </div>
-`;
+    💰 Total: ₹${total}
+  </div>`;
 }
 
-// TIME FORMAT
-function formatTime(dateStr){
+// DATE FIX
+function formatDate(val){
 
-  let d = new Date(dateStr);
+  if(!val) return "";
 
-  if (isNaN(d)) return "";
+  let d = new Date(val);
 
-  let h = d.getUTCHours();
-  let m = d.getUTCMinutes();
+  if(isNaN(d)){
+    let parts = val.split("-");
+    return parts.reverse().join("-");
+  }
 
-  let ampm = h >= 12 ? 'PM' : 'AM';
+  return ("0"+d.getDate()).slice(-2) + "-" +
+         ("0"+(d.getMonth()+1)).slice(-2) + "-" +
+         d.getFullYear();
+}
+
+// TIME FIX
+function formatTime(val){
+
+  let d = new Date(val);
+
+  if(isNaN(d)) return "";
+
+  let h = d.getHours();
+  let m = d.getMinutes();
+
+  let ampm = h >= 12 ? "PM" : "AM";
   h = h % 12 || 12;
-  m = m < 10 ? '0'+m : m;
+  m = m < 10 ? "0"+m : m;
 
-  return h + ':' + m + ' ' + ampm;
+  return h+":"+m+" "+ampm;
 }
-  function formatDate(dateStr){
 
-  if (!dateStr) return "";
-
-  let d = new Date(dateStr);
-
-  if (isNaN(d)) return "";
-
-  let day = ("0" + d.getDate()).slice(-2);
-  let month = ("0" + (d.getMonth() + 1)).slice(-2);
-  let year = d.getFullYear();
-
-  return day + "-" + month + "-" + year;
-}
 // BACK
 function goBack(){
   document.getElementById("detail").style.display = "none";
   document.getElementById("app").style.display = "block";
 }
 
-// PAYMENT
+// PAYMENT + AUTO TOTAL
 function savePayment(){
-  var amount = document.getElementById("payAmount").value;
-  var rowIndex = window.currentRowIndex + 2;
+
+  let amount = Number(document.getElementById("payAmount").value);
+  let rowIndex = window.currentRowIndex + 2;
+
+  let currentTotal = Number(document.getElementById("totalPaid").innerText);
+
+  let newTotal = currentTotal + amount;
 
   fetch(API_URL, {
     method: "POST",
     body: new URLSearchParams({
       action: "payment",
       row: rowIndex,
-      amount: amount
+      amount: newTotal
     })
   })
-  .then(res => res.text())
+  .then(res=>res.text())
   .then(r=>{
-    alert(r=="success" ? "Saved" : "Failed");
+    if(r=="success"){
+      document.getElementById("totalPaid").innerText = newTotal;
+      alert("Saved");
+    } else {
+      alert("Failed");
+    }
   });
 }
 
 // PHOTO
 function uploadPhoto(){
-  var file = document.getElementById("photoFile").files[0];
-  var reader = new FileReader();
+
+  let file = document.getElementById("photoFile").files[0];
+  let reader = new FileReader();
 
   reader.onload = function(){
-    var base64 = reader.result.split(",")[1];
-    var rowIndex = window.currentRowIndex + 2;
+
+    let base64 = reader.result.split(",")[1];
+    let rowIndex = window.currentRowIndex + 2;
 
     fetch(API_URL, {
       method: "POST",
@@ -294,7 +289,7 @@ function uploadPhoto(){
         file: base64
       })
     })
-    .then(res => res.text())
+    .then(res=>res.text())
     .then(r=>{
       alert(r=="success" ? "Uploaded" : "Failed");
     });
