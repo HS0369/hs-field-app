@@ -138,7 +138,14 @@ function login() {
   .then(res => res.text())
   .then(text => {
 
-    let json = JSON.parse(text);
+    let json;
+
+    try {
+      json = JSON.parse(text);
+    } catch(e) {
+      alert("API JSON error");
+      return;
+    }
 
     if (json.length > 0) {
 
@@ -156,11 +163,11 @@ function login() {
 
   })
   .catch(err => {
-    console.log("ERROR:", err);
-    alert("Error loading data");
+    console.log("REAL ERROR:", err);
+    // ❌ alert remove करा temporarily
   });
 }
-// HELP
+  // HELP
 function showHelp(){
   alert("Help section coming soon");
 }
@@ -217,9 +224,13 @@ document.getElementById("detailData").innerHTML = `
 
 // TIME FORMAT
 function formatTime(dateStr){
+
   let d = new Date(dateStr);
-  let h = d.getHours();
-  let m = d.getMinutes();
+
+  if (isNaN(d)) return "";
+
+  let h = d.getUTCHours();
+  let m = d.getUTCMinutes();
 
   let ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
@@ -228,15 +239,19 @@ function formatTime(dateStr){
   return h + ':' + m + ' ' + ampm;
 }
   function formatDate(dateStr){
+
+  if (!dateStr) return "";
+
   let d = new Date(dateStr);
 
-  let day = d.getDate().toString().padStart(2,'0');
-  let month = (d.getMonth()+1).toString().padStart(2,'0');
+  if (isNaN(d)) return "";
+
+  let day = ("0" + d.getDate()).slice(-2);
+  let month = ("0" + (d.getMonth() + 1)).slice(-2);
   let year = d.getFullYear();
 
   return day + "-" + month + "-" + year;
 }
-
 // BACK
 function goBack(){
   document.getElementById("detail").style.display = "none";
