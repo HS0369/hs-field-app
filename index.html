@@ -132,8 +132,11 @@ function login(){
   let mobile = document.getElementById("mobile").value;
 
   fetch(API_URL + "?mobile=" + mobile)
-  .then(res => res.json())
-  .then(data => {
+  .then(res => res.text())
+.then(text => {
+  console.log("API RESPONSE:", text);
+
+  let data = JSON.parse(text);
 
     if(data.length > 0){
 
