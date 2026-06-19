@@ -264,10 +264,7 @@ function openDetail(i){
   `;
 
   let input = document.getElementById("payAmount");
-
-  // RESET input
-  input.value = "";
-
+  
   input.oninput = function(){
     let paid = Number(this.value) || 0;
     document.getElementById("balance").innerText = totalAmount - paid;
