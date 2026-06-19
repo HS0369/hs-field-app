@@ -203,16 +203,20 @@ function goDashboard(){
   // COLLECTED
 
 function showCollected(id, amount){
-  document.getElementById("dashboard").style.display = "none";
 
-  alert(`✅ Collected\nID: ${id}\nAmount: ₹${amount}`);
+  document.getElementById("detail").style.display = "none";
+  document.getElementById("app").style.display = "block";
+
+  document.getElementById("app").innerHTML = `
+    <button onclick="goDashboard()">⬅ Back</button>
+
     <div class="card">
-      <h3>Collected List</h3>
-      <p>Data will show here</p>
+      <h3>✅ Collected</h3>
+      <p>ID: ${id}</p>
+      <p>Amount: ₹${amount}</p>
     </div>
-  goDashboard();
+  `;
 }
-
 // DETAIL
 function openDetail(i){
 
@@ -349,20 +353,6 @@ function uploadPhoto(){
   };
 
   reader.readAsDataURL(file);
-}
-  
-// COLLECTED
-  function showCollected(id, amount){
-
-  document.getElementById("detail").style.display = "none";
-
-  document.getElementById("app").innerHTML = `
-    <div class="card">
-      <h3>✅ Collected</h3>
-      <p>ID: ${id}</p>
-      <p>Amount: ₹${amount}</p>
-    </div>
-  `;
 }
 
 </script>
