@@ -205,19 +205,12 @@ function goDashboard(){
 function showCollected(id, amount){
 
   document.getElementById("detail").style.display = "none";
-  document.getElementById("app").style.display = "block";
 
-  document.getElementById("app").innerHTML = `
-    <button onclick="goDashboard()">⬅ Back</button>
+  alert(`✅ Collected\nID: ${id}\nAmount: ₹${amount}`);
 
-    <div class="card">
-      <h3>✅ Collected</h3>
-      <p>ID: ${id}</p>
-      <p>Amount: ₹${amount}</p>
-    </div>
-  `;
+  goDashboard(); // safe return
 }
-// DETAIL
+  // DETAIL
 function openDetail(i){
 
   let row = window.fullData[i];
@@ -243,13 +236,7 @@ function openDetail(i){
   `;
 
   let input = document.getElementById("payAmount");
-  input.value = "";
 
-  input.oninput = function(){
-    let paid = Number(this.value) || 0;
-    document.getElementById("balance").innerText = totalAmount - paid;
-  };
-}
   // RESET input
   input.value = "";
 
