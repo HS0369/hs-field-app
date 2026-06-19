@@ -226,7 +226,8 @@ document.getElementById("detailData").innerHTML = `
     Balance: ₹<span id="balance">${total}</span>
   </div>
 `;
-document.getElementById("payAmount").addEventListener("input", function(){
+Let input = document.getElementById("payAmount");
+  input.oninput = function(){
 
   let paid = Number(this.value) || 0;
 
