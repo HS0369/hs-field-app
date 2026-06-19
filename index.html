@@ -193,7 +193,16 @@ function render(data){
   document.getElementById("list").innerHTML = html;
   document.getElementById("count").innerText = data.length;
 }
+//Patients
+  function openPatients(){
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("app").style.display = "block";
 
+  // safety render if needed
+  if(window.fullData){
+    render(window.fullData);
+  }
+}
 // NAVIGATION
 function goDashboard(){
   document.getElementById("app").style.display = "none";
