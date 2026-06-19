@@ -94,6 +94,7 @@ button {
   <div class="card">📋 SOP</div>
   <div class="card" onclick="showHelp()">❓ Help</div>
   <button onclick="goDashboard()">⬅ Back</button>
+  <button onclick="logout()">🚪 Logout</button>
 </div>
   
 <!-- LIST -->
@@ -211,13 +212,31 @@ function goDashboard(){
 }
   // COLLECTED
 
-function showCollected(id, amount){
+function openCollected(){
 
-  document.getElementById("detail").style.display = "none";
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("app").style.display = "block";
 
-  alert(`✅ Collected\nID: ${id}\nAmount: ₹${amount}`);
+  let html = `<h3 style="text-align:center;">💰 Collected</h3>`;
 
-  goDashboard(); // safe return
+  if(window.collectedData.length === 0){
+    html += `<p style="text-align:center;">No data yet</p>`;
+  } else {
+
+    window.collectedData.forEach(item=>{
+      html += `
+        <div class="card">
+          <b>${item.name}</b><br>
+          ID: ${item.id}<br>
+          Amount: ₹${item.amount}
+        </div>
+      `;
+    });
+  }
+
+  html += `<button onclick="goDashboard()">⬅ Back</button>`;
+
+  document.getElementById("app").innerHTML = html;
 }
   // DETAIL
 function openDetail(i){
@@ -313,13 +332,18 @@ function savePayment(){
 
     if(r=="success"){
 
-      let id = new Date().getTime();
-      showCollected(id, amount);
+  let id = new Date().getTime();
 
-    } else {
-      alert("Failed");
-    }
+  let row = window.fullData[window.currentRowIndex];
 
+  window.collectedData({
+    id: id,
+    name: row[3],
+    amount: amount
+  });
+
+  showCollected(id, amount);
+}
   });
 }
   
@@ -342,13 +366,36 @@ function uploadPhoto(){
         file: base64
       })
     })
-    .then(res=>res.text())
     .then(r=>{
-      alert(r=="success" ? "Uploaded" : "Failed");
-    });
-  };
+  if(r=="success"){
 
+    let id = new Date().getTime();
+    let amount = document.getElementById("payAmount").value;
+    let row = window.fullData[window.currentRowIndex];
+
+    window.collectedData.push({
+      id: id,
+      name: row[3],
+      amount: amount
+    });
+
+    showCollected(id, amount);
+
+  } else {
+    alert("Failed");
+  }
+});
   reader.readAsDataURL(file);
+}
+//LOGOUT
+  function logout(){
+  localStorage.clear();
+
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("detail").style.display = "none";
+
+  document.getElementById("login").style.display = "block";
 }
 
 </script>
