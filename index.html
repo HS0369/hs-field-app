@@ -110,7 +110,7 @@ button {
 
 <script>
 
-const API_URL = "YOUR_API_URL";
+const API_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
 // ✅ AUTO LOGIN (12 HOURS)
 window.onload = function(){
@@ -127,41 +127,42 @@ window.onload = function(){
 };
 
 // LOGIN
-function login(){
+function login() {
 
-  let mobile = document.getElementById("mobile").value;
+  var mobile = document.getElementById("mobile").value;
 
   fetch(API_URL + "?mobile=" + mobile)
-  .then(res => res.text())
-.then(text => {
-  console.log("API RESPONSE:", text);
+  .then(response => response.text())
+  .then(text => {
 
-  let data = JSON.parse(text);
+    console.log("RAW:", text);
 
-    if(data.length > 0){
+    let data = JSON.parse(text); // 🔥 direct parse
 
-      localStorage.setItem("loginTime", Date.now());
-      localStorage.setItem("mobile", mobile);
+    console.log("DATA:", data);
+
+    if (data && data.length > 0) {
 
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
 
-      render(data);
+      render(data); // ✅ important
 
     } else {
-      alert("No Data");
+      alert("No data found");
     }
+
   })
-  .catch(err=>{
-    alert("Loading Error");
-    console.log(err);
+  .catch(error => {
+    console.log("ERROR:", error);
+    alert("Server error");
   });
 }
-
 // RENDER
 function render(data){
 
   let html = "";
+  console.log("RENDER RUNNING");
 
   data.forEach((row, i)=>{
 
