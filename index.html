@@ -93,7 +93,6 @@ button {
   <div class="card" onclick="openCollected()">💰 Collected</div>
   <div class="card">📋 SOP</div>
   <div class="card" onclick="showHelp()">❓ Help</div>
-  <button onclick="goDashboard()">⬅ Back</button>
   <button onclick="logout()">🚪 Logout</button>
 </div>
   
@@ -325,23 +324,25 @@ function savePayment(){
     })
   })
   .then(res => res.text())
-  .then(r=>{
+.then(r=>{
+  if(r=="success"){
 
-    if(r=="success"){
+    let id = new Date().getTime();
+    let amount = document.getElementById("payAmount").value;
+    let row = window.fullData[window.currentRowIndex];
 
-  let id = new Date().getTime();
+    window.collectedData.push({
+      id: id,
+      name: row[3],
+      amount: amount
+    });
 
-  let row = window.fullData[window.currentRowIndex];
+    showCollected(id, amount);
 
-  window.collectedData({
-    id: id,
-    name: row[3],
-    amount: amount
-  });
-
-  showCollected(id, amount);
-}
-  });
+  } else {
+    alert("Failed");
+  }
+});
 }
   
 // PHOTO
