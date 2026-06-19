@@ -84,7 +84,17 @@ button {
   <input type="text" id="mobile" placeholder="Enter Mobile">
   <button onclick="login()">Login</button>
 </div>
+  
+<!-- DASHBOARD -->
+  <div id="dashboard" style="display:none; padding:15px;">
 
+  <div class="card" onclick="openPatients()">👨‍⚕️ Patients</div>
+  <div class="card" onclick="openCollected()">💰 Collected</div>
+  <div class="card">📋 SOP</div>
+  <div class="card" onclick="showHelp()">❓ Help</div>
+
+</div>
+  
 <!-- LIST -->
 <div id="app" style="display:none;">
   <h3 style="text-align:center;">Patients (<span id="count">0</span>)</h3>
@@ -144,7 +154,8 @@ function login() {
     if (data && data.length > 0) {
 
       document.getElementById("login").style.display = "none";
-      document.getElementById("app").style.display = "block";
+      document.getElementById("login").style.display = "none";
+document.getElementById("dashboard").style.display = "block";
 
       render(data); // ✅ important
 
@@ -181,6 +192,23 @@ function render(data){
   document.getElementById("count").innerText = data.length;
 }
 
+// NAVIGATION
+  function openPatients(){
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}
+
+function openCollected(){
+  document.getElementById("dashboard").style.display = "none";
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h3>Collected List</h3>
+      <p>Data will show here</p>
+    </div>
+  `;
+}
+
 // DETAIL
 function openDetail(i){
 
@@ -192,8 +220,6 @@ function openDetail(i){
 
   let total = row[8] || 0;
 
-  document.getElementById("totalPaid").innerText = total;
-
   document.getElementById("detailData").innerHTML = `
   <div class="card">
     <b>${row[3]}</b><br><br>
@@ -201,8 +227,18 @@ function openDetail(i){
     🕒 ${formatTime(row[2])}<br>
     📍 ${row[5]}<br>
     🧪 Tube: ${row[7]}<br>
-    💰 Total: ₹${total}
+    💰 Total: ₹${total}<br>
+    Balance: ₹<span id="balance">${row[8]}</span>
   </div>`;
+  
+let total = row[8] || 0;
+
+document.getElementById("payAmount").addEventListener("input", function(){
+
+  let paid = Number(this.value) || 0;
+
+  document.getElementById("balance").innerText = total - paid;
+});
 }
 
 // DATE FIX
@@ -242,38 +278,38 @@ function formatTime(val){
 // BACK
 function goBack(){
   document.getElementById("detail").style.display = "none";
-  document.getElementById("app").style.display = "block";
+  document.getElementById("dashboard").style.display = "block";
 }
-
+  
 // PAYMENT + AUTO TOTAL
 function savePayment(){
 
-  let amount = Number(document.getElementById("payAmount").value);
-  let rowIndex = window.currentRowIndex + 2;
-
-  let currentTotal = Number(document.getElementById("totalPaid").innerText);
-
-  let newTotal = currentTotal + amount;
+  var amount = document.getElementById("payAmount").value;
+  var rowIndex = window.currentRowIndex + 2;
 
   fetch(API_URL, {
     method: "POST",
     body: new URLSearchParams({
       action: "payment",
       row: rowIndex,
-      amount: newTotal
+      amount: amount
     })
   })
-  .then(res=>res.text())
+  .then(res => res.text())
   .then(r=>{
+
     if(r=="success"){
-      document.getElementById("totalPaid").innerText = newTotal;
-      alert("Saved");
+
+      let id = new Date().getTime();
+      showCollected(id, amount);
+
     } else {
       alert("Failed");
     }
+
   });
 }
-
+  
 // PHOTO
 function uploadPhoto(){
 
@@ -300,6 +336,20 @@ function uploadPhoto(){
   };
 
   reader.readAsDataURL(file);
+}
+  
+// COLLECTED
+  function showCollected(id, amount){
+
+  document.getElementById("detail").style.display = "none";
+
+  document.getElementById("app").innerHTML = `
+    <div class="card">
+      <h3>✅ Collected</h3>
+      <p>ID: ${id}</p>
+      <p>Amount: ₹${amount}</p>
+    </div>
+  `;
 }
 
 </script>
