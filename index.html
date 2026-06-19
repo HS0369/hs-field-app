@@ -192,10 +192,11 @@ function render(data){
 }
 
 // NAVIGATION
-  function openPatients(){
+function openPatients(){
   document.getElementById("dashboard").style.display = "none";
   document.getElementById("app").style.display = "block";
 }
+// COLLECTED
 
 function openCollected(){
   document.getElementById("dashboard").style.display = "none";
@@ -217,22 +218,25 @@ function openDetail(i){
   document.getElementById("app").style.display = "none";
   document.getElementById("detail").style.display = "block";
 
-  let total = row[8] || 0;
+  let totalAmount = Number(row[8]) || 0;
 
-document.getElementById("detailData").innerHTML = `
-  <div class="card">
-    <b>${row[3]}</b><br><br>
-    Total: ₹${total}<br>
-    Balance: ₹<span id="balance">${total}</span>
-  </div>
-`;
-Let input = document.getElementById("payAmount");
+  document.getElementById("detailData").innerHTML = `
+    <div class="card">
+      <b>${row[3]}</b><br><br>
+      Total: ₹${totalAmount}<br>
+      Balance: ₹<span id="balance">${totalAmount}</span>
+    </div>
+  `;
+
+  let input = document.getElementById("payAmount");
+
+  // RESET input
+  input.value = "";
+
   input.oninput = function(){
-
-  let paid = Number(this.value) || 0;
-
-  document.getElementById("balance").innerText = total - paid;
-});
+    let paid = Number(this.value) || 0;
+    document.getElementById("balance").innerText = totalAmount - paid;
+  };
 }
 
 // DATE FIX
