@@ -154,8 +154,7 @@ function login() {
     if (data && data.length > 0) {
 
       document.getElementById("login").style.display = "none";
-      document.getElementById("login").style.display = "none";
-document.getElementById("dashboard").style.display = "block";
+      document.getElementById("dashboard").style.display = "block";
 
       render(data); // ✅ important
 
@@ -220,19 +219,13 @@ function openDetail(i){
 
   let total = row[8] || 0;
 
-  document.getElementById("detailData").innerHTML = `
+document.getElementById("detailData").innerHTML = `
   <div class="card">
     <b>${row[3]}</b><br><br>
-    📅 ${formatDate(row[1])}<br>
-    🕒 ${formatTime(row[2])}<br>
-    📍 ${row[5]}<br>
-    🧪 Tube: ${row[7]}<br>
-    💰 Total: ₹${total}<br>
-    Balance: ₹<span id="balance">${row[8]}</span>
-  </div>`;
-  
-let total = row[8] || 0;
-
+    Total: ₹${total}<br>
+    Balance: ₹<span id="balance">${total}</span>
+  </div>
+`;
 document.getElementById("payAmount").addEventListener("input", function(){
 
   let paid = Number(this.value) || 0;
