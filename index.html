@@ -5,7 +5,7 @@
 <title>HS Field App</title>
 
 <style>
-body {
+body { 
   font-family: Arial;
   margin: 0;
 }
@@ -86,13 +86,14 @@ button {
 </div>
   
 <!-- DASHBOARD -->
+  
   <div id="dashboard" style="display:none; padding:15px;">
 
   <div class="card" onclick="openPatients()">👨‍⚕️ Patients</div>
   <div class="card" onclick="openCollected()">💰 Collected</div>
   <div class="card">📋 SOP</div>
   <div class="card" onclick="showHelp()">❓ Help</div>
-
+  <button onclick="goDashboard()">⬅ Back</button>
 </div>
   
 <!-- LIST -->
@@ -140,6 +141,8 @@ window.onload = function(){
 function login() {
 
   var mobile = document.getElementById("mobile").value;
+  localStorage.setItem("mobile", mobile);
+localStorage.setItem("loginTime", Date.now());
 
   fetch(API_URL + "?mobile=" + mobile)
   .then(response => response.text())
@@ -192,21 +195,22 @@ function render(data){
 }
 
 // NAVIGATION
-function openPatients(){
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("app").style.display = "block";
+function goDashboard(){
+  document.getElementById("app").style.display = "none";
+  document.getElementById("detail").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
 }
-// COLLECTED
+  // COLLECTED
 
-function openCollected(){
+function showCollected(id, amount){
   document.getElementById("dashboard").style.display = "none";
 
-  document.getElementById("app").innerHTML = `
+  alert(`✅ Collected\nID: ${id}\nAmount: ₹${amount}`);
     <div class="card">
       <h3>Collected List</h3>
       <p>Data will show here</p>
     </div>
-  `;
+  goDashboard();
 }
 
 // DETAIL
@@ -223,13 +227,25 @@ function openDetail(i){
   document.getElementById("detailData").innerHTML = `
     <div class="card">
       <b>${row[3]}</b><br><br>
+      📅 ${formatDate(row[1])}<br>
+      🕒 ${formatTime(row[2])}<br>
+      📞 ${row[4]}<br>
+      📍 ${row[5]}<br>
+      🧪 ${row[7]}<br><br>
+
       Total: ₹${totalAmount}<br>
       Balance: ₹<span id="balance">${totalAmount}</span>
     </div>
   `;
 
   let input = document.getElementById("payAmount");
+  input.value = "";
 
+  input.oninput = function(){
+    let paid = Number(this.value) || 0;
+    document.getElementById("balance").innerText = totalAmount - paid;
+  };
+}
   // RESET input
   input.value = "";
 
@@ -276,9 +292,8 @@ function formatTime(val){
 // BACK
 function goBack(){
   document.getElementById("detail").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-}
-  
+  document.getElementById("app").style.display = "block";
+}  
 // PAYMENT + AUTO TOTAL
 function savePayment(){
 
