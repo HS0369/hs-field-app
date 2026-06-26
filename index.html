@@ -82,7 +82,7 @@ button {
 <div id="login" class="login-box">
   <h3>Login</h3>
   <input type="text" id="mobile" placeholder="Enter Mobile">
-  <button onclick="login()">Login</button>
+  <button onclick="userLogin()">Login</button>
 </div>
   
 <!-- DASHBOARD -->
@@ -138,7 +138,7 @@ window.onload = function(){
 };
 
 // LOGIN
-function login() {
+function userLogin() {
 
   var mobile = document.getElementById("mobile").value;
   localStorage.setItem("mobile", mobile);
