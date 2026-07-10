@@ -72,7 +72,6 @@ button {
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <img src="logo.png" class="logo"><br>
   <b>HS Field App</b>
@@ -84,18 +83,16 @@ button {
   <input type="text" id="mobile" placeholder="Enter Mobile">
   <button onclick="userLogin()">Login</button>
 </div>
-  
-<!-- DASHBOARD -->
-  
-  <div id="dashboard" style="display:none; padding:15px;">
 
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none; padding:15px;">
   <div class="card" onclick="openPatients()">👨‍⚕️ Patients</div>
   <div class="card" onclick="openCollected()">💰 Collected</div>
   <div class="card">📋 SOP</div>
-  <div class="card" onclick="showHelp()">❓ Help</div>
+  <div class="card">❓ Help</div>
   <button onclick="logout()">🚪 Logout</button>
 </div>
-  
+
 <!-- LIST -->
 <div id="app" style="display:none;">
   <h3 style="text-align:center;">Patients (<span id="count">0</span>)</h3>
@@ -123,7 +120,9 @@ button {
 
 const API_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
-// ✅ AUTO LOGIN (12 HOURS)
+window.collectedData = []; // ✅ FIX
+
+// AUTO LOGIN
 window.onload = function(){
   let saved = localStorage.getItem("loginTime");
   let mobile = localStorage.getItem("mobile");
@@ -132,7 +131,7 @@ window.onload = function(){
     let diff = (Date.now() - saved) / (1000 * 60 * 60);
     if(diff < 12){
       document.getElementById("mobile").value = mobile;
-      login();
+      userLogin(); // ✅ FIX
     }
   }
 };
@@ -142,40 +141,33 @@ function userLogin() {
 
   var mobile = document.getElementById("mobile").value;
   localStorage.setItem("mobile", mobile);
-localStorage.setItem("loginTime", Date.now());
+  localStorage.setItem("loginTime", Date.now());
 
   fetch(API_URL + "?mobile=" + mobile)
-  .then(response => response.text())
+  .then(res => res.text())
   .then(text => {
 
-    console.log("RAW:", text);
-
-    let data = JSON.parse(text); // 🔥 direct parse
-
-    console.log("DATA:", data);
+    let data = JSON.parse(text);
 
     if (data && data.length > 0) {
 
       document.getElementById("login").style.display = "none";
       document.getElementById("dashboard").style.display = "block";
 
-      render(data); // ✅ important
+      render(data);
 
     } else {
       alert("No data found");
     }
 
   })
-  .catch(error => {
-    console.log("ERROR:", error);
-    alert("Server error");
-  });
+  .catch(() => alert("Server error"));
 }
+
 // RENDER
 function render(data){
 
   let html = "";
-  console.log("RENDER RUNNING");
 
   data.forEach((row, i)=>{
 
@@ -193,24 +185,21 @@ function render(data){
   document.getElementById("list").innerHTML = html;
   document.getElementById("count").innerText = data.length;
 }
-//Patients
-  function openPatients(){
+
+// NAV
+function openPatients(){
   document.getElementById("dashboard").style.display = "none";
   document.getElementById("app").style.display = "block";
-
-  // safety render if needed
-  if(window.fullData){
-    render(window.fullData);
-  }
+  render(window.fullData);
 }
-// NAVIGATION
+
 function goDashboard(){
   document.getElementById("app").style.display = "none";
   document.getElementById("detail").style.display = "none";
   document.getElementById("dashboard").style.display = "block";
 }
-  // COLLECTED
 
+// COLLECTED
 function openCollected(){
 
   document.getElementById("dashboard").style.display = "none";
@@ -221,7 +210,6 @@ function openCollected(){
   if(window.collectedData.length === 0){
     html += `<p style="text-align:center;">No data yet</p>`;
   } else {
-
     window.collectedData.forEach(item=>{
       html += `
         <div class="card">
@@ -234,10 +222,10 @@ function openCollected(){
   }
 
   html += `<button onclick="goDashboard()">⬅ Back</button>`;
-
   document.getElementById("app").innerHTML = html;
 }
-  // DETAIL
+
+// DETAIL
 function openDetail(i){
 
   let row = window.fullData[i];
@@ -256,51 +244,40 @@ function openDetail(i){
       📞 ${row[4]}<br>
       📍 ${row[5]}<br>
       🧪 ${row[7]}<br><br>
-
       Total: ₹${totalAmount}<br>
       Balance: ₹<span id="balance">${totalAmount}</span>
     </div>
   `;
 
   let input = document.getElementById("payAmount");
-  
+  input.value = "";
+
   input.oninput = function(){
     let paid = Number(this.value) || 0;
     document.getElementById("balance").innerText = totalAmount - paid;
   };
 }
 
-// DATE FIX
+// DATE
 function formatDate(val){
-
   if(!val) return "";
-
   let d = new Date(val);
-
   if(isNaN(d)){
     let parts = val.split("-");
     return parts.reverse().join("-");
   }
-
-  return ("0"+d.getDate()).slice(-2) + "-" +
-         ("0"+(d.getMonth()+1)).slice(-2) + "-" +
-         d.getFullYear();
+  return ("0"+d.getDate()).slice(-2)+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+d.getFullYear();
 }
 
-// TIME FIX
+// TIME
 function formatTime(val){
-
   let d = new Date(val);
-
   if(isNaN(d)) return "";
-
   let h = d.getHours();
   let m = d.getMinutes();
-
   let ampm = h >= 12 ? "PM" : "AM";
   h = h % 12 || 12;
   m = m < 10 ? "0"+m : m;
-
   return h+":"+m+" "+ampm;
 }
 
@@ -308,8 +285,9 @@ function formatTime(val){
 function goBack(){
   document.getElementById("detail").style.display = "none";
   document.getElementById("app").style.display = "block";
-}  
-// PAYMENT + AUTO TOTAL
+}
+
+// SAVE PAYMENT
 function savePayment(){
 
   var amount = document.getElementById("payAmount").value;
@@ -324,31 +302,24 @@ function savePayment(){
     })
   })
   .then(res => res.text())
-.then(r=>{
-  if(r=="success"){
-
-    let id = new Date().getTime();
-    let amount = document.getElementById("payAmount").value;
-    let row = window.fullData[window.currentRowIndex];
-
-    window.collectedData.push({
-      id: id,
-      name: row[3],
-      amount: amount
-    });
-
-    showCollected(id, amount);
-
-  } else {
-    alert("Failed");
-  }
-});
+  .then(r=>{
+    if(r=="success"){
+      alert("Payment Saved. Now upload photo.");
+    } else {
+      alert("Failed");
+    }
+  });
 }
-  
+
 // PHOTO
 function uploadPhoto(){
 
   let file = document.getElementById("photoFile").files[0];
+  if(!file){
+    alert("Select photo first");
+    return;
+  }
+
   let reader = new FileReader();
 
   reader.onload = function(){
@@ -364,36 +335,35 @@ function uploadPhoto(){
         file: base64
       })
     })
+    .then(res => res.text())
     .then(r=>{
-  if(r=="success"){
+      if(r=="success"){
 
-    let id = new Date().getTime();
-    let amount = document.getElementById("payAmount").value;
-    let row = window.fullData[window.currentRowIndex];
+        let id = new Date().getTime();
+        let amount = document.getElementById("payAmount").value;
+        let row = window.fullData[window.currentRowIndex];
 
-    window.collectedData.push({
-      id: id,
-      name: row[3],
-      amount: amount
+        window.collectedData.push({
+          id: id,
+          name: row[3],
+          amount: amount
+        });
+
+        openCollected();
+
+      } else {
+        alert("Upload Failed");
+      }
     });
+  };
 
-    showCollected(id, amount);
-
-  } else {
-    alert("Failed");
-  }
-});
   reader.readAsDataURL(file);
 }
-//LOGOUT
-  function logout(){
+
+// LOGOUT
+function logout(){
   localStorage.clear();
-
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("app").style.display = "none";
-  document.getElementById("detail").style.display = "none";
-
-  document.getElementById("login").style.display = "block";
+  location.reload();
 }
 
 </script>
