@@ -2,35 +2,48 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
 body{font-family:Arial;margin:0;background:#fff;}
+.login{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;}
 input,button{width:90%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #ccc;}
 button{background:#1976d2;color:#fff;font-weight:bold;}
-.card{border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;}
-.menu{margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:center;font-weight:bold;}
 .header{display:flex;align-items:center;padding:10px;border-bottom:1px solid #ddd;}
 .header img{width:50px;height:50px;border-radius:50%;margin-right:10px;}
-video{width:90%;margin-top:10px;border-radius:10px;}
+.menu{margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:center;font-weight:bold;}
+.card{border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;}
+video{width:100%;max-height:200px;}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="login" style="padding:20px;text-align:center">
+<div id="login" class="login">
   <img src="logo.png" width="80"><br>
   <b>Health Space</b>
+
   <input id="mobile" placeholder="Mobile">
   <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
+
+  <button onclick="startCamera()">Login</button>
 </div>
+
+<!-- CAMERA -->
+<div id="cameraBox" style="display:none;text-align:center">
+  <video id="video" autoplay></video><br>
+  <button onclick="capturePhoto()">📸 Capture Photo</button>
+</div>
+
+<canvas id="canvas" style="display:none"></canvas>
 
 <!-- DASHBOARD -->
 <div id="dashboard" style="display:none">
   <div class="header">
     <img id="userPhoto">
-    <div><b id="userName"></b><br><small>Phlebotomist</small></div>
+    <div>
+      <b id="userName"></b><br>
+      <small>Phlebotomist</small>
+    </div>
   </div>
 
   <div class="menu" onclick="openPatients()">Patients</div>
@@ -55,6 +68,7 @@ video{width:90%;margin-top:10px;border-radius:10px;}
 <!-- DETAIL -->
 <div id="detail" style="display:none">
   <h3 style="text-align:center">Details</h3>
+
   <div id="detailBox"></div>
 
   <input id="pay" placeholder="Enter Amount">
@@ -62,10 +76,6 @@ video{width:90%;margin-top:10px;border-radius:10px;}
 
   <input type="file" id="photo">
   <button onclick="uploadPhoto()">Upload Tubes Photo</button>
-
-  <video id="video" autoplay style="display:none"></video>
-  <button onclick="startCamera()">Open Camera</button>
-  <button onclick="capturePhoto()">Capture Photo</button>
 
   <button onclick="backPatients()">Back</button>
 </div>
@@ -79,10 +89,68 @@ let collected=JSON.parse(localStorage.getItem("collected")||"[]");
 let currentRow=null;
 let paymentDone=false;
 
+// DATE
+function formatDate(d){
+let dt=new Date(d);
+return ("0"+dt.getDate()).slice(-2)+"-"+("0"+(dt.getMonth()+1)).slice(-2)+"-"+dt.getFullYear();
+}
+
+// TIME
+function formatTime(d){
+let dt=new Date(d);
+let h=dt.getHours();
+let m=dt.getMinutes();
+let ampm=h>=12?"PM":"AM";
+h=h%12||12;
+m=m<10?"0"+m:m;
+return h+":"+m+" "+ampm;
+}
+
+// AUTO LOGIN
+window.onload=function(){
+let t=localStorage.getItem("loginTime");
+let m=localStorage.getItem("mobile");
+
+if(t && m && (Date.now()-t)/(1000*60*60)<12){
+document.getElementById("login").style.display="none";
+document.getElementById("dashboard").style.display="block";
+document.getElementById("userName").innerText=localStorage.getItem("name")||"User";
+document.getElementById("userPhoto").src=localStorage.getItem("photo");
+fetchData();
+}
+};
+
+// CAMERA START
+function startCamera(){
+document.getElementById("login").style.display="none";
+document.getElementById("cameraBox").style.display="block";
+
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+document.getElementById("video").srcObject=stream;
+});
+}
+
+// CAPTURE
+function capturePhoto(){
+let video=document.getElementById("video");
+let canvas=document.getElementById("canvas");
+
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+canvas.getContext("2d").drawImage(video,0,0);
+
+let photo=canvas.toDataURL("image/png");
+localStorage.setItem("photo",photo);
+
+login();
+}
+
 // LOGIN
 function login(){
-let m=mobile.value;
-let p=password.value;
+
+let m=document.getElementById("mobile").value;
+let p=document.getElementById("password").value;
 
 if(p!="12345"){alert("Wrong password");return;}
 
@@ -92,28 +160,42 @@ localStorage.setItem("loginTime",Date.now());
 fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
+
+if(t.includes("<!DOCTYPE")){alert("API Error");return;}
+
 patients=JSON.parse(t);
 
+// remove already collected
+patients = patients.filter(p => !collected.find(c => c.id==p[0]));
+
 let name=patients[0][6]||"User";
-userName.innerText=name;
 localStorage.setItem("name",name);
 
-userPhoto.src=localStorage.getItem("photo")||"https://via.placeholder.com/50";
+document.getElementById("userName").innerText=name;
+document.getElementById("userPhoto").src=localStorage.getItem("photo");
 
-login.style.display="none";
-dashboard.style.display="block";
+document.getElementById("cameraBox").style.display="none";
+document.getElementById("dashboard").style.display="block";
 
 render();
+
 });
 }
 
 // FETCH
 function fetchData(){
 let m=localStorage.getItem("mobile");
+
 fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
+if(!t)return;
+
 patients=JSON.parse(t);
+
+// remove collected
+patients = patients.filter(p => !collected.find(c => c.id==p[0]));
+
 render();
 });
 }
@@ -121,26 +203,30 @@ render();
 // RENDER
 function render(){
 let html="";
+
 patients.forEach((r,i)=>{
 html+=`
 <div class="card" onclick="openDetail(${i})">
 <b>${r[3]}</b><br>
+📅 ${formatDate(r[1])}<br>
+🕒 ${formatTime(r[2])}<br>
 🧪 ${r[7]}<br>
 ₹${r[8]}
 </div>`;
 });
-list.innerHTML=html;
+
+document.getElementById("list").innerHTML=html;
 }
 
 // DETAIL
 function openDetail(i){
-currentRow=i+2;
+currentRow=i;
 let r=patients[i];
 
 hide();
-detail.style.display="block";
+document.getElementById("detail").style.display="block";
 
-detailBox.innerHTML=`
+document.getElementById("detailBox").innerHTML=`
 <div class="card">
 <b>${r[3]}</b><br>
 🧪 ${r[7]}<br>
@@ -150,8 +236,8 @@ Total ₹${r[8]}
 
 // PAYMENT
 function payNow(){
-let amt=Number(pay.value);
-let total=Number(patients[currentRow-2][8]);
+let amt=Number(document.getElementById("pay").value);
+let total=Number(patients[currentRow][8]);
 
 if(amt!==total){alert("Full payment required");return;}
 
@@ -159,18 +245,21 @@ paymentDone=true;
 
 fetch(API,{
 method:"POST",
-body:new URLSearchParams({action:"payment",row:currentRow})
-}).then(()=>fetchData());
+body:new URLSearchParams({
+action:"payment",
+row:currentRow+2
+})
+});
 
-alert("Now upload tubes photo");
+alert("Now upload tube photo");
 }
 
 // PHOTO
 function uploadPhoto(){
 
-if(!paymentDone){alert("Complete payment first");return;}
+if(!paymentDone){alert("Pay first");return;}
 
-let file=photo.files[0];
+let file=document.getElementById("photo").files[0];
 let reader=new FileReader();
 
 reader.onload=function(){
@@ -181,52 +270,32 @@ fetch(API,{
 method:"POST",
 body:new URLSearchParams({
 action:"upload",
-row:currentRow,
+row:currentRow+2,
 file:base64
 })
 }).then(()=>{
 
-let r=patients[currentRow-2];
+let p=patients[currentRow];
 
+// save collected
 collected.push({
-name:r[3],
-amount:r[8],
-tube:r[7]
+id:p[0],
+name:p[3],
+amount:p[8],
+tube:p[7]
 });
 
 localStorage.setItem("collected",JSON.stringify(collected));
 
-patients.splice(currentRow-2,1);
+// remove from list
+patients.splice(currentRow,1);
 
-fetchData();
 backPatients();
 
 });
 };
 
 reader.readAsDataURL(file);
-}
-
-// CAMERA
-function startCamera(){
-navigator.mediaDevices.getUserMedia({video:true})
-.then(stream=>{
-video.srcObject=stream;
-video.style.display="block";
-});
-}
-
-function capturePhoto(){
-let canvas=document.createElement("canvas");
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
-canvas.getContext("2d").drawImage(video,0,0);
-
-let photo=canvas.toDataURL("image/png");
-localStorage.setItem("photo",photo);
-userPhoto.src=photo;
-
-alert("Photo captured");
 }
 
 // COLLECTED VIEW
@@ -245,21 +314,21 @@ html+=`
 </div>`;
 });
 
-collectedList.innerHTML=html;
-collected.style.display="block";
+document.getElementById("collectedList").innerHTML=html;
+document.getElementById("collected").style.display="block";
 }
 
 // NAV
-function openPatients(){hide();patients.style.display="block";}
-function goDash(){hide();dashboard.style.display="block";}
-function backPatients(){hide();patients.style.display="block";}
+function openPatients(){hide();document.getElementById("patients").style.display="block";}
+function goDash(){hide();document.getElementById("dashboard").style.display="block";}
+function backPatients(){hide();render();document.getElementById("patients").style.display="block";}
 function hide(){
-["dashboard","patients","collected","detail"].forEach(id=>{
-document.getElementById(id).style.display="none";
+["dashboard","patients","collected","detail","cameraBox"].forEach(id=>{
+let el=document.getElementById(id);
+if(el) el.style.display="none";
 });
 }
 
-// LOGOUT
 function logout(){
 localStorage.clear();
 location.reload();
