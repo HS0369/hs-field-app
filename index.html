@@ -36,10 +36,7 @@ border-bottom:1px solid #ddd;
 }
 
 .header img{
-width:50px;
-height:50px;
-border-radius:50%;
-margin-right:10px;
+width:50px;height:50px;border-radius:50%;margin-right:10px;
 }
 
 .menu{
@@ -57,6 +54,7 @@ margin:10px;
 padding:10px;
 border-radius:8px;
 }
+video,canvas{display:none;}
 </style>
 </head>
 
@@ -70,8 +68,11 @@ border-radius:8px;
   <input id="mobile" placeholder="Mobile">
   <input id="password" type="password" placeholder="Password">
 
-  <button onclick="login()">Login</button>
+  <button onclick="startCamera()">Login</button>
 </div>
+
+<video id="video" autoplay></video>
+<canvas id="canvas"></canvas>
 
 <!-- DASHBOARD -->
 <div id="dashboard" style="display:none">
@@ -83,8 +84,6 @@ border-radius:8px;
       <small>Phlebotomist</small>
     </div>
   </div>
-
-  <div class="menu">Today Collection: ₹<span id="total">0</span></div>
 
   <div class="menu" onclick="openPatients()">Patients</div>
   <div class="menu" onclick="openCollected()">Collected</div>
@@ -130,7 +129,26 @@ let collected=[];
 let currentRow=null;
 let paymentDone=false;
 
-// 🔐 AUTO LOGIN (12 HOURS FIXED)
+// ✅ DATE FORMAT FIX
+function formatDate(d){
+let dt=new Date(d);
+return ("0"+dt.getDate()).slice(-2)+"-"+
+("0"+(dt.getMonth()+1)).slice(-2)+"-"+
+dt.getFullYear();
+}
+
+// ✅ TIME FORMAT FIX
+function formatTime(d){
+let dt=new Date(d);
+let h=dt.getHours();
+let m=dt.getMinutes();
+let ampm=h>=12?"PM":"AM";
+h=h%12||12;
+m=m<10?"0"+m:m;
+return h+":"+m+" "+ampm;
+}
+
+// 🔐 AUTO LOGIN
 window.onload=function(){
 
 let t=localStorage.getItem("loginTime");
@@ -141,58 +159,67 @@ if(t && m && (Date.now()-t)/(1000*60*60)<12){
 document.getElementById("login").style.display="none";
 document.getElementById("dashboard").style.display="block";
 
-document.getElementById("userName").innerText=localStorage.getItem("name") || "User";
-document.getElementById("userPhoto").src=localStorage.getItem("photo") || "https://via.placeholder.com/50";
+document.getElementById("userName").innerText=localStorage.getItem("name")||"User";
+document.getElementById("userPhoto").src=localStorage.getItem("photo")||"https://via.placeholder.com/50";
 
-// ✅ IMPORTANT: fetch again after reopen
 fetchData();
-
 }
-
 };
 
-// 🔐 LOGIN (FIXED)
+// 🎥 CAMERA START
+function startCamera(){
+
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{
+document.getElementById("video").srcObject=stream;
+
+// capture after 1 sec
+setTimeout(capturePhoto,1000);
+});
+}
+
+// 📸 CAPTURE SELFIE
+function capturePhoto(){
+
+let video=document.getElementById("video");
+let canvas=document.getElementById("canvas");
+
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+
+canvas.getContext("2d").drawImage(video,0,0);
+
+let photo=canvas.toDataURL("image/png");
+
+localStorage.setItem("photo",photo);
+
+login(); // continue login
+}
+
+// 🔐 LOGIN
 function login(){
 
 let m=document.getElementById("mobile").value;
 let p=document.getElementById("password").value;
 
-if(p!="12345"){
-alert("Wrong password");
-return;
-}
+if(p!="12345"){alert("Wrong password");return;}
 
-// ✅ SAVE MOBILE (CRITICAL FIX)
-localStorage.setItem("mobile", m);
+localStorage.setItem("mobile",m);
 localStorage.setItem("loginTime",Date.now());
 
 fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
 
-if(!t){
-alert("No data found");
-return;
-}
-
-if(t.includes("<!DOCTYPE")){
-alert("Wrong API URL");
-return;
-}
+if(t.includes("<!DOCTYPE")){alert("API Error");return;}
 
 patients=JSON.parse(t);
 
-// name from sheet column G (index 6)
-let name=patients[0][6] || "User";
-
+let name=patients[0][6]||"User";
 localStorage.setItem("name",name);
 
 document.getElementById("userName").innerText=name;
-
-// dummy photo (can replace later)
-let img="https://via.placeholder.com/50";
-localStorage.setItem("photo",img);
-document.getElementById("userPhoto").src=img;
+document.getElementById("userPhoto").src=localStorage.getItem("photo");
 
 document.getElementById("login").style.display="none";
 document.getElementById("dashboard").style.display="block";
@@ -200,65 +227,48 @@ document.getElementById("dashboard").style.display="block";
 render();
 
 });
-
 }
 
-// 🔄 FETCH DATA (FIXED)
+// 🔄 FETCH
 function fetchData(){
 
 let m=localStorage.getItem("mobile");
 
-if(!m){
-alert("Session expired");
-logout();
-return;
-}
-
 fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
-
-if(!t){
-console.log("Empty response");
-return;
-}
-
+if(!t)return;
 patients=JSON.parse(t);
-
 render();
-
 });
-
 }
 
-// 📋 RENDER PATIENTS
+// 📋 RENDER
 function render(){
 
 let html="";
 
 patients.forEach((r,i)=>{
+
 html+=`
 <div class="card" onclick="openDetail(${i})">
 <b>${r[3]}</b><br>
-📅 ${r[1]}<br>
+📅 ${formatDate(r[1])}<br>
+🕒 ${formatTime(r[2])}<br>
 🧪 ${r[7]}<br>
 ₹${r[8]}
 </div>`;
 });
 
 document.getElementById("list").innerHTML=html;
-
 }
 
-// 🔍 DETAIL
+// DETAIL
 function openDetail(i){
-
 currentRow=i+2;
-
 let r=patients[i];
 
 hide();
-
 document.getElementById("detail").style.display="block";
 
 document.getElementById("detailBox").innerHTML=`
@@ -268,7 +278,7 @@ Total ₹${r[8]}
 </div>`;
 }
 
-// 💰 PAYMENT
+// PAYMENT
 function payNow(){
 
 let amt=Number(document.getElementById("pay").value);
@@ -289,20 +299,15 @@ row:currentRow
 })
 });
 
-alert("Payment done. Now upload photo");
-
+alert("Now upload photo");
 }
 
-// 📸 PHOTO UPLOAD
+// PHOTO
 function uploadPhoto(){
 
-if(!paymentDone){
-alert("Complete payment first");
-return;
-}
+if(!paymentDone){alert("Pay first");return;}
 
 let file=document.getElementById("photo").files[0];
-
 let reader=new FileReader();
 
 reader.onload=function(){
@@ -316,55 +321,33 @@ action:"upload",
 row:currentRow,
 file:base64
 })
-})
-.then(()=>{
+}).then(()=>{
 
-// transfer to collected
 collected.push(patients[currentRow-2]);
-
-// remove from patient list
 patients.splice(currentRow-2,1);
 
 backPatients();
-
 });
-
 };
 
 reader.readAsDataURL(file);
 }
 
-// 📂 NAVIGATION
-function openPatients(){
-hide();
-document.getElementById("patients").style.display="block";
-}
-
+// NAV
+function openPatients(){hide();document.getElementById("patients").style.display="block";}
 function openCollected(){
 
 hide();
-
 let html="";
-
 collected.forEach(r=>{
-html+=`<div class="card"><b>${r[3]}</b> ₹${r[8]}</div>`;
+html+=`<div class="card">${r[3]} ₹${r[8]}</div>`;
 });
-
 document.getElementById("collectedList").innerHTML=html;
 document.getElementById("collected").style.display="block";
-
 }
 
-function goDash(){
-hide();
-document.getElementById("dashboard").style.display="block";
-}
-
-function backPatients(){
-hide();
-render();
-document.getElementById("patients").style.display="block";
-}
+function goDash(){hide();document.getElementById("dashboard").style.display="block";}
+function backPatients(){hide();render();document.getElementById("patients").style.display="block";}
 
 function hide(){
 ["dashboard","patients","collected","detail"].forEach(id=>{
@@ -372,7 +355,6 @@ document.getElementById(id).style.display="none";
 });
 }
 
-// 🚪 LOGOUT
 function logout(){
 localStorage.clear();
 location.reload();
