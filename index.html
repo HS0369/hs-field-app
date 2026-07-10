@@ -2,79 +2,37 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HS Field App</title>
 
 <style>
-body{
-  font-family: Arial;
-  margin:0;
-  background:#fff;
-}
+body{font-family:Arial;margin:0;background:#fff;}
 
-/* LOGIN UI */
-.login-box{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  padding:20px;
-}
-
-.logo{
-  width:80px;
-  margin-bottom:10px;
-}
-
-.title{
-  font-size:22px;
-  font-weight:bold;
-  margin-bottom:20px;
+.login{
+height:100vh;display:flex;flex-direction:column;
+justify-content:center;align-items:center;
 }
 
 input,button{
-  width:90%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
+width:90%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #ccc;
 }
 
-button{
-  background:#1976d2;
-  color:#fff;
-  font-weight:bold;
-}
+button{background:#1976d2;color:#fff;font-weight:bold;}
 
-/* HEADER */
 .header{
-  padding:10px;
-  text-align:center;
-  border-bottom:1px solid #ddd;
+display:flex;align-items:center;
+padding:10px;border-bottom:1px solid #ddd;
 }
 
-/* CARD */
+.header img{
+width:50px;height:50px;border-radius:50%;margin-right:10px;
+}
+
 .card{
-  border:1px solid #eee;
-  padding:12px;
-  margin:10px;
-  border-radius:8px;
+border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;
 }
 
-/* GRID DASHBOARD */
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  padding:10px;
-}
-
-.box{
-  border:1px solid #ddd;
-  padding:20px;
-  text-align:center;
-  border-radius:10px;
-  font-weight:bold;
+.menu{
+margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;
+text-align:center;font-weight:bold;
 }
 </style>
 </head>
@@ -82,199 +40,238 @@ button{
 <body>
 
 <!-- LOGIN -->
-<div id="login" class="login-box">
-  <img src="logo.png" class="logo">
-  <div class="title">Health Space</div>
+<div id="login" class="login">
+  <img src="logo.png" width="80"><br>
+  <b>Health Space</b>
 
-  <input type="text" id="mobile" placeholder="Enter Mobile">
-
+  <input id="mobile" placeholder="Mobile">
   <input type="file" id="selfie" accept="image/*" capture="user">
 
-  <button onclick="userLogin()">Login</button>
+  <button onclick="login()">Login</button>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard" style="display:none;">
+<div id="dashboard" style="display:none">
+
   <div class="header">
-    Welcome, <span id="userName"></span>
+    <img id="userPhoto">
+    <div>
+      <b id="userName"></b><br>
+      <small>Phlebotomist</small>
+    </div>
   </div>
 
-  <div class="grid">
-    <div class="box" onclick="openPatients()">Orders</div>
-    <div class="box" onclick="openCollected()">Collected</div>
-    <div class="box">SOP</div>
-    <div class="box" onclick="logout()">Logout</div>
-  </div>
+  <div class="menu" onclick="openPatients()">Patients</div>
+  <div class="menu" onclick="openCollected()">Collected</div>
+  <div class="menu">SOP</div>
+  <div class="menu" onclick="logout()">Logout</div>
+
 </div>
 
 <!-- PATIENT LIST -->
-<div id="patients" style="display:none;">
-  <h3 style="text-align:center;">Patients</h3>
+<div id="patients" style="display:none">
+  <h3 style="text-align:center">Patients</h3>
   <div id="list"></div>
-  <button onclick="goDashboard()">Back</button>
+  <button onclick="goDash()">Back</button>
 </div>
 
 <!-- COLLECTED -->
-<div id="collected" style="display:none;">
-  <h3 style="text-align:center;">Collected</h3>
+<div id="collected" style="display:none">
+  <h3 style="text-align:center">Collected</h3>
   <div id="collectedList"></div>
-  <button onclick="goDashboard()">Back</button>
+  <button onclick="goDash()">Back</button>
 </div>
 
 <!-- DETAIL -->
-<div id="detail" style="display:none;">
-  <h3 style="text-align:center;">Patient Details</h3>
+<div id="detail" style="display:none">
+  <h3 style="text-align:center">Details</h3>
 
-  <div id="detailData"></div>
+  <div id="detailBox"></div>
 
-  <input id="payAmount" placeholder="Enter Payment">
-  <button onclick="savePayment()">Save Payment</button>
+  <input id="pay" placeholder="Enter Amount">
+  <button onclick="submitPayment()">Submit</button>
 
-  <input type="file" id="photoFile">
-  <button onclick="uploadPhoto()">Upload Photo</button>
+  <input type="file" id="photo">
+  <button onclick="upload()">Upload Photo</button>
 
-  <button onclick="goPatients()">Back</button>
+  <button onclick="backPatients()">Back</button>
 </div>
 
 <script>
 
-const API_URL="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
+const API="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
-let collectedData=[];
+let patients=[];
+let collected=[];
 
 // LOGIN
-function userLogin(){
+function login(){
 
-  let mobile=document.getElementById("mobile").value;
-  let file=document.getElementById("selfie").files[0];
+let mob=document.getElementById("mobile").value;
+let file=document.getElementById("selfie").files[0];
 
-  if(!file){
-    alert("Selfie required");
-    return;
-  }
+if(!file){alert("Selfie required");return;}
 
-  localStorage.setItem("mobile",mobile);
-  localStorage.setItem("loginTime",Date.now());
+let reader=new FileReader();
 
-  fetch(API_URL+"?mobile="+mobile)
-  .then(res=>res.text())
-  .then(text=>{
+reader.onload=function(){
 
-    let data=JSON.parse(text);
+let img=reader.result;
+localStorage.setItem("photo",img);
 
-    if(data.length>0){
+fetch(API+"?mobile="+mob)
+.then(r=>r.text())
+.then(t=>{
 
-      document.getElementById("login").style.display="none";
-      document.getElementById("dashboard").style.display="block";
+let data=JSON.parse(t);
 
-      document.getElementById("userName").innerText=data[0][3];
+if(data.length==0){alert("No data");return;}
 
-      window.fullData=data;
-      render(data);
+patients=data;
 
-    }else{
-      alert("No data");
-    }
+document.getElementById("login").style.display="none";
+document.getElementById("dashboard").style.display="block";
 
-  });
+document.getElementById("userPhoto").src=img;
+document.getElementById("userName").innerText=data[0][6]; // column G
+
+renderPatients();
+
+});
+
+};
+
+reader.readAsDataURL(file);
+
 }
 
-// RENDER
-function render(data){
-  let html="";
+// RENDER PATIENTS
+function renderPatients(){
 
-  data.forEach((row,i)=>{
-    html+=`
-    <div class="card" onclick="openDetail(${i})">
-      <b>${row[3]}</b><br>
-      ${row[1]}<br>
-      ${row[7]}
-    </div>`;
-  });
+let html="";
 
-  document.getElementById("list").innerHTML=html;
-}
+patients.forEach((r,i)=>{
 
-// NAV
-function openPatients(){
-  hideAll();
-  document.getElementById("patients").style.display="block";
-}
+html+=`
+<div class="card" onclick="openDetail(${i})">
+📅 ${formatDate(r[1])}<br>
+🕒 ${formatTime(r[2])}<br>
+🧪 ${r[7]}<br>
+💰 ₹${r[8]}
+</div>
+`;
 
-function openCollected(){
-  hideAll();
-  document.getElementById("collected").style.display="block";
+});
 
-  let html="";
+document.getElementById("list").innerHTML=html;
 
-  if(collectedData.length==0){
-    html="No data";
-  }else{
-    collectedData.forEach(i=>{
-      html+=`<div class="card">${i.name}<br>₹${i.amount}</div>`;
-    });
-  }
-
-  document.getElementById("collectedList").innerHTML=html;
-}
-
-function goDashboard(){
-  hideAll();
-  document.getElementById("dashboard").style.display="block";
-}
-
-function goPatients(){
-  hideAll();
-  document.getElementById("patients").style.display="block";
-}
-
-function hideAll(){
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("patients").style.display="none";
-  document.getElementById("collected").style.display="none";
-  document.getElementById("detail").style.display="none";
 }
 
 // DETAIL
 function openDetail(i){
-  hideAll();
-  document.getElementById("detail").style.display="block";
 
-  let row=fullData[i];
-  window.currentRowIndex=i;
+window.index=i;
 
-  document.getElementById("detailData").innerHTML=`
-  <div class="card">
-    <b>${row[3]}</b><br>
-    ${row[4]}<br>
-    ${row[5]}<br>
-    Total: ₹${row[8]}
-  </div>`;
+let r=patients[i];
+
+document.getElementById("patients").style.display="none";
+document.getElementById("detail").style.display="block";
+
+document.getElementById("detailBox").innerHTML=`
+<div class="card">
+📅 ${formatDate(r[1])}<br>
+🕒 ${formatTime(r[2])}<br>
+🧪 ${r[7]}<br>
+Total: ₹${r[8]}
+</div>
+`;
+
 }
 
-// SAVE
-function savePayment(){
-  alert("Saved. Upload photo");
+// SUBMIT
+function submitPayment(){
+
+let amt=Number(document.getElementById("pay").value);
+let total=Number(patients[index][8]);
+
+if(amt!==total){
+alert("Collect full amount only");
+return;
 }
 
-// PHOTO
-function uploadPhoto(){
+alert("Now upload photo");
 
-  let amount=document.getElementById("payAmount").value;
-  let row=fullData[currentRowIndex];
+}
 
-  collectedData.push({
-    name:row[3],
-    amount:amount
-  });
+// UPLOAD
+function upload(){
 
-  openCollected();
+let file=document.getElementById("photo").files[0];
+if(!file){alert("Upload photo");return;}
+
+let r=patients[index];
+
+collected.push(r);
+
+// remove from patient
+patients.splice(index,1);
+
+backPatients();
+
+}
+
+// NAV
+function openPatients(){
+hide();
+document.getElementById("patients").style.display="block";
+}
+
+function openCollected(){
+hide();
+
+let html="";
+
+collected.forEach(r=>{
+html+=`<div class="card">${r[7]} ₹${r[8]}</div>`;
+});
+
+document.getElementById("collectedList").innerHTML=html;
+document.getElementById("collected").style.display="block";
+}
+
+function goDash(){
+hide();
+document.getElementById("dashboard").style.display="block";
+}
+
+function backPatients(){
+hide();
+renderPatients();
+document.getElementById("patients").style.display="block";
+}
+
+function hide(){
+document.getElementById("dashboard").style.display="none";
+document.getElementById("patients").style.display="none";
+document.getElementById("detail").style.display="none";
+document.getElementById("collected").style.display="none";
+}
+
+// DATE TIME
+function formatDate(d){
+let x=new Date(d);
+return x.getDate()+"-"+(x.getMonth()+1)+"-"+x.getFullYear();
+}
+
+function formatTime(t){
+let x=new Date(t);
+return x.toLocaleTimeString();
 }
 
 // LOGOUT
 function logout(){
-  localStorage.clear();
-  location.reload();
+localStorage.clear();
+location.reload();
 }
 
 </script>
