@@ -85,7 +85,7 @@ video{width:100%;max-height:200px;}
 const API="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
 let patients=[];
-let collected=JSON.parse(localStorage.getItem("collected")||"[]");
+let collected = [];
 let currentRow=null;
 let paymentDone=false;
 
@@ -163,7 +163,12 @@ fetch(API+"?mobile="+m)
 
 if(t.includes("<!DOCTYPE")){alert("API Error");return;}
 
-patients=JSON.parse(t);
+let data = JSON.parse(t);
+
+patients = data.filter(r => r[10] != "Collected");
+collected = data.filter(r => r[10] == "Collected");
+
+render();
 
 // remove already collected
 patients = patients.filter(p => !collected.find(c => c.id==p[0]));
@@ -308,16 +313,15 @@ let html="";
 collected.forEach(r=>{
 html+=`
 <div class="card">
-<b>${r.name}</b><br>
-🧪 ${r.tube}<br>
-₹${r.amount}
+<b>${r[3]}</b><br>
+🧪 ${r[7]}<br>
+₹${r[8]}
 </div>`;
 });
 
 document.getElementById("collectedList").innerHTML=html;
 document.getElementById("collected").style.display="block";
 }
-
 // NAV
 function openPatients(){hide();document.getElementById("patients").style.display="block";}
 function goDash(){hide();document.getElementById("dashboard").style.display="block";}
