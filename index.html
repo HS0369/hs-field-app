@@ -123,7 +123,7 @@ border-radius:8px;
 
 <script>
 
-const API="YOUR_SCRIPT_URL";
+const API="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
 let patients=[];
 let collected=[];
@@ -172,6 +172,11 @@ fetch(API+"?mobile="+m)
 
 if(!t){
 alert("No data found");
+return;
+}
+
+if(t.includes("<!DOCTYPE")){
+alert("Wrong API URL");
 return;
 }
 
