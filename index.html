@@ -5,13 +5,58 @@
 
 <style>
 body{font-family:Arial;margin:0;background:#fff;}
-.login{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;}
-input,button{width:90%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #ccc;}
-button{background:#1976d2;color:#fff;font-weight:bold;}
-.header{display:flex;align-items:center;padding:10px;border-bottom:1px solid #ddd;}
-.header img{width:50px;height:50px;border-radius:50%;margin-right:10px;}
-.menu{margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:center;font-weight:bold;}
-.card{border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;}
+
+.login{
+height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
+
+input,button{
+width:90%;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+button{
+background:#1976d2;
+color:#fff;
+font-weight:bold;
+}
+
+.header{
+display:flex;
+align-items:center;
+padding:10px;
+border-bottom:1px solid #ddd;
+}
+
+.header img{
+width:50px;
+height:50px;
+border-radius:50%;
+margin-right:10px;
+}
+
+.menu{
+margin:10px;
+padding:15px;
+border:1px solid #ddd;
+border-radius:10px;
+text-align:center;
+font-weight:bold;
+}
+
+.card{
+border:1px solid #eee;
+margin:10px;
+padding:10px;
+border-radius:8px;
+}
 </style>
 </head>
 
@@ -80,47 +125,66 @@ button{background:#1976d2;color:#fff;font-weight:bold;}
 
 const API="YOUR_SCRIPT_URL";
 
-let patients=[], collected=[];
-let currentRow, paymentDone=false;
+let patients=[];
+let collected=[];
+let currentRow=null;
+let paymentDone=false;
 
-// AUTO LOGIN
+// 🔐 AUTO LOGIN (12 HOURS FIXED)
 window.onload=function(){
 
 let t=localStorage.getItem("loginTime");
+let m=localStorage.getItem("mobile");
 
-if(t && (Date.now()-t)/(1000*60*60)<12){
+if(t && m && (Date.now()-t)/(1000*60*60)<12){
 
 document.getElementById("login").style.display="none";
 document.getElementById("dashboard").style.display="block";
 
-document.getElementById("userName").innerText=localStorage.getItem("name");
-document.getElementById("userPhoto").src=localStorage.getItem("photo");
+document.getElementById("userName").innerText=localStorage.getItem("name") || "User";
+document.getElementById("userPhoto").src=localStorage.getItem("photo") || "https://via.placeholder.com/50";
 
+// ✅ IMPORTANT: fetch again after reopen
 fetchData();
 
 }
+
 };
 
-// LOGIN
+// 🔐 LOGIN (FIXED)
 function login(){
 
 let m=document.getElementById("mobile").value;
 let p=document.getElementById("password").value;
 
-if(p!="12345"){alert("Wrong password");return;}
+if(p!="12345"){
+alert("Wrong password");
+return;
+}
 
+// ✅ SAVE MOBILE (CRITICAL FIX)
+localStorage.setItem("mobile", m);
 localStorage.setItem("loginTime",Date.now());
 
 fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
 
+if(!t){
+alert("No data found");
+return;
+}
+
 patients=JSON.parse(t);
 
-localStorage.setItem("name",patients[0][6]);
+// name from sheet column G (index 6)
+let name=patients[0][6] || "User";
 
-document.getElementById("userName").innerText=patients[0][6];
+localStorage.setItem("name",name);
 
+document.getElementById("userName").innerText=name;
+
+// dummy photo (can replace later)
 let img="https://via.placeholder.com/50";
 localStorage.setItem("photo",img);
 document.getElementById("userPhoto").src=img;
@@ -134,25 +198,42 @@ render();
 
 }
 
-// FETCH
+// 🔄 FETCH DATA (FIXED)
 function fetchData(){
+
 let m=localStorage.getItem("mobile");
+
+if(!m){
+alert("Session expired");
+logout();
+return;
+}
 
 fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
-patients=JSON.parse(t);
-render();
-});
+
+if(!t){
+console.log("Empty response");
+return;
 }
 
-// RENDER
+patients=JSON.parse(t);
+
+render();
+
+});
+
+}
+
+// 📋 RENDER PATIENTS
 function render(){
 
 let html="";
 
 patients.forEach((r,i)=>{
-html+=`<div class="card" onclick="openDetail(${i})">
+html+=`
+<div class="card" onclick="openDetail(${i})">
 <b>${r[3]}</b><br>
 📅 ${r[1]}<br>
 🧪 ${r[7]}<br>
@@ -161,9 +242,10 @@ html+=`<div class="card" onclick="openDetail(${i})">
 });
 
 document.getElementById("list").innerHTML=html;
+
 }
 
-// DETAIL
+// 🔍 DETAIL
 function openDetail(i){
 
 currentRow=i+2;
@@ -171,6 +253,7 @@ currentRow=i+2;
 let r=patients[i];
 
 hide();
+
 document.getElementById("detail").style.display="block";
 
 document.getElementById("detailBox").innerHTML=`
@@ -180,13 +263,16 @@ Total ₹${r[8]}
 </div>`;
 }
 
-// PAYMENT
+// 💰 PAYMENT
 function payNow(){
 
 let amt=Number(document.getElementById("pay").value);
 let total=Number(patients[currentRow-2][8]);
 
-if(amt!==total){alert("Full payment required");return;}
+if(amt!==total){
+alert("Full payment required");
+return;
+}
 
 paymentDone=true;
 
@@ -198,14 +284,17 @@ row:currentRow
 })
 });
 
-alert("Now upload photo");
+alert("Payment done. Now upload photo");
 
 }
 
-// UPLOAD
+// 📸 PHOTO UPLOAD
 function uploadPhoto(){
 
-if(!paymentDone){alert("Complete payment first");return;}
+if(!paymentDone){
+alert("Complete payment first");
+return;
+}
 
 let file=document.getElementById("photo").files[0];
 
@@ -225,7 +314,10 @@ file:base64
 })
 .then(()=>{
 
+// transfer to collected
 collected.push(patients[currentRow-2]);
+
+// remove from patient list
 patients.splice(currentRow-2,1);
 
 backPatients();
@@ -237,23 +329,37 @@ backPatients();
 reader.readAsDataURL(file);
 }
 
-// NAV
-function openPatients(){hide();document.getElementById("patients").style.display="block";}
+// 📂 NAVIGATION
+function openPatients(){
+hide();
+document.getElementById("patients").style.display="block";
+}
+
 function openCollected(){
 
 hide();
 
 let html="";
+
 collected.forEach(r=>{
 html+=`<div class="card"><b>${r[3]}</b> ₹${r[8]}</div>`;
 });
 
 document.getElementById("collectedList").innerHTML=html;
 document.getElementById("collected").style.display="block";
+
 }
 
-function goDash(){hide();document.getElementById("dashboard").style.display="block";}
-function backPatients(){hide();render();document.getElementById("patients").style.display="block";}
+function goDash(){
+hide();
+document.getElementById("dashboard").style.display="block";
+}
+
+function backPatients(){
+hide();
+render();
+document.getElementById("patients").style.display="block";
+}
 
 function hide(){
 ["dashboard","patients","collected","detail"].forEach(id=>{
@@ -261,8 +367,11 @@ document.getElementById(id).style.display="none";
 });
 }
 
-// LOGOUT
-function logout(){localStorage.clear();location.reload();}
+// 🚪 LOGOUT
+function logout(){
+localStorage.clear();
+location.reload();
+}
 
 </script>
 
