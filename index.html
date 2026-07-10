@@ -5,32 +5,13 @@
 
 <style>
 body{font-family:Arial;margin:0;background:#fff;}
-
-.login{
-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
-}
-
-input,button{
-width:90%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #ccc;
-}
-
+.login{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;}
+input,button{width:90%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #ccc;}
 button{background:#1976d2;color:#fff;font-weight:bold;}
-
-.header{
-display:flex;align-items:center;padding:10px;border-bottom:1px solid #ddd;
-}
-
-.header img{
-width:50px;height:50px;border-radius:50%;margin-right:10px;
-}
-
-.menu{
-margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:center;font-weight:bold;
-}
-
-.card{
-border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;
-}
+.header{display:flex;align-items:center;padding:10px;border-bottom:1px solid #ddd;}
+.header img{width:50px;height:50px;border-radius:50%;margin-right:10px;}
+.menu{margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:center;font-weight:bold;}
+.card{border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;}
 </style>
 </head>
 
@@ -58,7 +39,7 @@ border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;
     </div>
   </div>
 
-  <div class="menu">Today Collection: ₹<span id="todayTotal">0</span></div>
+  <div class="menu">Today Collection: ₹<span id="total">0</span></div>
 
   <div class="menu" onclick="openPatients()">Patients</div>
   <div class="menu" onclick="openCollected()">Collected</div>
@@ -87,32 +68,27 @@ border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;
   <div id="detailBox"></div>
 
   <input id="pay" placeholder="Enter Amount">
-  <button onclick="checkPayment()">Submit Payment</button>
+  <button onclick="payNow()">Submit Payment</button>
 
   <input type="file" id="photo">
-  <button onclick="upload()">Upload Photo</button>
+  <button onclick="uploadPhoto()">Upload Photo</button>
 
   <button onclick="backPatients()">Back</button>
 </div>
 
 <script>
 
-const API="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
+const API="YOUR_SCRIPT_URL";
 
-let patients=[];
-let collected=[];
-let currentIndex=null;
-let paymentDone=false;
+let patients=[], collected=[];
+let currentRow, paymentDone=false;
 
-// AUTO LOGIN (12 HOURS)
+// AUTO LOGIN
 window.onload=function(){
 
-let time=localStorage.getItem("loginTime");
+let t=localStorage.getItem("loginTime");
 
-if(time){
-let diff=(Date.now()-time)/(1000*60*60);
-
-if(diff<12){
+if(t && (Date.now()-t)/(1000*60*60)<12){
 
 document.getElementById("login").style.display="none";
 document.getElementById("dashboard").style.display="block";
@@ -122,38 +98,29 @@ document.getElementById("userPhoto").src=localStorage.getItem("photo");
 
 fetchData();
 
-}else{
-localStorage.clear();
-}
 }
 };
 
 // LOGIN
 function login(){
 
-let mob=document.getElementById("mobile").value;
-let pass=document.getElementById("password").value;
+let m=document.getElementById("mobile").value;
+let p=document.getElementById("password").value;
 
-if(pass!="12345"){
-alert("Wrong password");
-return;
-}
+if(p!="12345"){alert("Wrong password");return;}
 
 localStorage.setItem("loginTime",Date.now());
 
-fetch(API+"?mobile="+mob)
+fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
 
-let data=JSON.parse(t);
+patients=JSON.parse(t);
 
-patients=data;
+localStorage.setItem("name",patients[0][6]);
 
-localStorage.setItem("name",data[0][6]);
+document.getElementById("userName").innerText=patients[0][6];
 
-document.getElementById("userName").innerText=data[0][6];
-
-// default avatar
 let img="https://via.placeholder.com/50";
 localStorage.setItem("photo",img);
 document.getElementById("userPhoto").src=img;
@@ -161,32 +128,33 @@ document.getElementById("userPhoto").src=img;
 document.getElementById("login").style.display="none";
 document.getElementById("dashboard").style.display="block";
 
-renderPatients();
-updateTotal();
+render();
 
 });
 
 }
 
-// FETCH AGAIN (AUTO LOGIN)
+// FETCH
 function fetchData(){
-fetch(API)
+let m=localStorage.getItem("mobile");
+
+fetch(API+"?mobile="+m)
 .then(r=>r.text())
 .then(t=>{
 patients=JSON.parse(t);
-renderPatients();
-updateTotal();
+render();
 });
 }
 
 // RENDER
-function renderPatients(){
+function render(){
 
 let html="";
 
 patients.forEach((r,i)=>{
 html+=`<div class="card" onclick="openDetail(${i})">
-📅 ${formatDate(r[1])}<br>
+<b>${r[3]}</b><br>
+📅 ${r[1]}<br>
 🧪 ${r[7]}<br>
 ₹${r[8]}
 </div>`;
@@ -198,8 +166,7 @@ document.getElementById("list").innerHTML=html;
 // DETAIL
 function openDetail(i){
 
-currentIndex=i;
-paymentDone=false;
+currentRow=i+2;
 
 let r=patients[i];
 
@@ -208,38 +175,39 @@ document.getElementById("detail").style.display="block";
 
 document.getElementById("detailBox").innerHTML=`
 <div class="card">
-📅 ${formatDate(r[1])}<br>
-🧪 ${r[7]}<br>
+<b>${r[3]}</b><br>
 Total ₹${r[8]}
 </div>`;
 }
 
-// PAYMENT CHECK
-function checkPayment(){
+// PAYMENT
+function payNow(){
 
 let amt=Number(document.getElementById("pay").value);
-let total=Number(patients[currentIndex][8]);
+let total=Number(patients[currentRow-2][8]);
 
-if(amt!==total){
-alert("Full payment required");
-return;
-}
+if(amt!==total){alert("Full payment required");return;}
 
 paymentDone=true;
+
+fetch(API,{
+method:"POST",
+body:new URLSearchParams({
+action:"payment",
+row:currentRow
+})
+});
+
 alert("Now upload photo");
 
 }
 
 // UPLOAD
-function upload(){
+function uploadPhoto(){
 
-if(!paymentDone){
-alert("Complete payment first");
-return;
-}
+if(!paymentDone){alert("Complete payment first");return;}
 
 let file=document.getElementById("photo").files[0];
-if(!file){alert("Select photo");return;}
 
 let reader=new FileReader();
 
@@ -251,19 +219,15 @@ fetch(API,{
 method:"POST",
 body:new URLSearchParams({
 action:"upload",
+row:currentRow,
 file:base64
 })
 })
-.then(r=>r.text())
-.then(url=>{
+.then(()=>{
 
-let rData=patients[currentIndex];
-collected.push(rData);
+collected.push(patients[currentRow-2]);
+patients.splice(currentRow-2,1);
 
-// remove patient
-patients.splice(currentIndex,1);
-
-updateTotal();
 backPatients();
 
 });
@@ -271,18 +235,6 @@ backPatients();
 };
 
 reader.readAsDataURL(file);
-}
-
-// TOTAL
-function updateTotal(){
-
-let sum=0;
-
-collected.forEach(r=>{
-sum+=Number(r[8]);
-});
-
-document.getElementById("todayTotal").innerText=sum;
 }
 
 // NAV
@@ -293,7 +245,7 @@ hide();
 
 let html="";
 collected.forEach(r=>{
-html+=`<div class="card">${r[7]} ₹${r[8]}</div>`;
+html+=`<div class="card"><b>${r[3]}</b> ₹${r[8]}</div>`;
 });
 
 document.getElementById("collectedList").innerHTML=html;
@@ -301,7 +253,7 @@ document.getElementById("collected").style.display="block";
 }
 
 function goDash(){hide();document.getElementById("dashboard").style.display="block";}
-function backPatients(){hide();renderPatients();document.getElementById("patients").style.display="block";}
+function backPatients(){hide();render();document.getElementById("patients").style.display="block";}
 
 function hide(){
 ["dashboard","patients","collected","detail"].forEach(id=>{
@@ -309,17 +261,8 @@ document.getElementById(id).style.display="none";
 });
 }
 
-// DATE
-function formatDate(d){
-let x=new Date(d);
-return x.getDate()+"-"+(x.getMonth()+1)+"-"+x.getFullYear();
-}
-
 // LOGOUT
-function logout(){
-localStorage.clear();
-location.reload();
-}
+function logout(){localStorage.clear();location.reload();}
 
 </script>
 
