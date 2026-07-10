@@ -212,11 +212,25 @@ let html="";
 patients.forEach((r,i)=>{
 html+=`
 <div class="card" onclick="openDetail(${i})">
+
 <b>${r[3]}</b><br>
+
 📅 ${formatDate(r[1])}<br>
 🕒 ${formatTime(r[2])}<br>
+
 🧪 ${r[7]}<br>
-₹${r[8]}
+₹${r[8]}<br>
+
+📍 ${r[5] || ""}
+
+<br><br>
+
+<a href="tel:${r[4]}" onclick="event.stopPropagation()">📞 Call</a>
+
+&nbsp;&nbsp;
+
+<a href="https://www.google.com/maps?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">📍 Map</a>
+
 </div>`;
 });
 
