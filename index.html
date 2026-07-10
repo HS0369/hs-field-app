@@ -5,98 +5,120 @@
 <title>HS Field App</title>
 
 <style>
-body { 
+body{
   font-family: Arial;
-  margin: 0;
+  margin:0;
+  background:#fff;
+}
+
+/* LOGIN UI */
+.login-box{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+.logo{
+  width:80px;
+  margin-bottom:10px;
+}
+
+.title{
+  font-size:22px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+input,button{
+  width:90%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button{
+  background:#1976d2;
+  color:#fff;
+  font-weight:bold;
 }
 
 /* HEADER */
-.header {
-  background: linear-gradient(135deg, #ff7a00, #d81b60);
-  color: white;
-  text-align: center;
-  padding: 12px;
-  position: relative;
-}
-
-.logo {
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
-  background: #fff;
-  padding: 6px;
-  border-radius: 10px;
-}
-
-/* LOGIN CENTER */
-.login-box {
-  height: 80vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 20px;
+.header{
+  padding:10px;
+  text-align:center;
+  border-bottom:1px solid #ddd;
 }
 
 /* CARD */
-.card {
-  border-left: 4px solid #ff7a00;
-  padding: 10px;
-  margin: 10px;
-  position: relative;
-  background: #fff;
-  border-radius: 6px;
+.card{
+  border:1px solid #eee;
+  padding:12px;
+  margin:10px;
+  border-radius:8px;
 }
 
-/* BUTTONS */
-input, button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 6px;
+/* GRID DASHBOARD */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:10px;
 }
 
-button {
-  background: #d81b60;
-  color: white;
-  font-weight: bold;
-}
-
-.call-btn {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  font-size: 20px;
+.box{
+  border:1px solid #ddd;
+  padding:20px;
+  text-align:center;
+  border-radius:10px;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <img src="logo.png" class="logo"><br>
-  <b>HS Field App</b>
-</div>
-
 <!-- LOGIN -->
 <div id="login" class="login-box">
-  <h3>Login</h3>
+  <img src="logo.png" class="logo">
+  <div class="title">Health Space</div>
+
   <input type="text" id="mobile" placeholder="Enter Mobile">
+
+  <input type="file" id="selfie" accept="image/*" capture="user">
+
   <button onclick="userLogin()">Login</button>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard" style="display:none; padding:15px;">
-  <div class="card" onclick="openPatients()">👨‍⚕️ Patients</div>
-  <div class="card" onclick="openCollected()">💰 Collected</div>
-  <div class="card">📋 SOP</div>
-  <div class="card">❓ Help</div>
-  <button onclick="logout()">🚪 Logout</button>
+<div id="dashboard" style="display:none;">
+  <div class="header">
+    Welcome, <span id="userName"></span>
+  </div>
+
+  <div class="grid">
+    <div class="box" onclick="openPatients()">Orders</div>
+    <div class="box" onclick="openCollected()">Collected</div>
+    <div class="box">SOP</div>
+    <div class="box" onclick="logout()">Logout</div>
+  </div>
 </div>
 
-<!-- LIST -->
-<div id="app" style="display:none;">
-  <h3 style="text-align:center;">Patients (<span id="count">0</span>)</h3>
+<!-- PATIENT LIST -->
+<div id="patients" style="display:none;">
+  <h3 style="text-align:center;">Patients</h3>
   <div id="list"></div>
+  <button onclick="goDashboard()">Back</button>
+</div>
+
+<!-- COLLECTED -->
+<div id="collected" style="display:none;">
+  <h3 style="text-align:center;">Collected</h3>
+  <div id="collectedList"></div>
+  <button onclick="goDashboard()">Back</button>
 </div>
 
 <!-- DETAIL -->
@@ -108,256 +130,145 @@ button {
   <input id="payAmount" placeholder="Enter Payment">
   <button onclick="savePayment()">Save Payment</button>
 
-  <p><b>Total Paid: ₹<span id="totalPaid">0</span></b></p>
-
   <input type="file" id="photoFile">
   <button onclick="uploadPhoto()">Upload Photo</button>
 
-  <button onclick="goBack()">Back</button>
+  <button onclick="goPatients()">Back</button>
 </div>
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
-window.collectedData = []; // ✅ FIX
-
-// AUTO LOGIN
-window.onload = function(){
-  let saved = localStorage.getItem("loginTime");
-  let mobile = localStorage.getItem("mobile");
-
-  if(saved && mobile){
-    let diff = (Date.now() - saved) / (1000 * 60 * 60);
-    if(diff < 12){
-      document.getElementById("mobile").value = mobile;
-      userLogin(); // ✅ FIX
-    }
-  }
-};
+let collectedData=[];
 
 // LOGIN
-function userLogin() {
+function userLogin(){
 
-  var mobile = document.getElementById("mobile").value;
-  localStorage.setItem("mobile", mobile);
-  localStorage.setItem("loginTime", Date.now());
+  let mobile=document.getElementById("mobile").value;
+  let file=document.getElementById("selfie").files[0];
 
-  fetch(API_URL + "?mobile=" + mobile)
-  .then(res => res.text())
-  .then(text => {
+  if(!file){
+    alert("Selfie required");
+    return;
+  }
 
-    let data = JSON.parse(text);
+  localStorage.setItem("mobile",mobile);
+  localStorage.setItem("loginTime",Date.now());
 
-    if (data && data.length > 0) {
+  fetch(API_URL+"?mobile="+mobile)
+  .then(res=>res.text())
+  .then(text=>{
 
-      document.getElementById("login").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
+    let data=JSON.parse(text);
 
+    if(data.length>0){
+
+      document.getElementById("login").style.display="none";
+      document.getElementById("dashboard").style.display="block";
+
+      document.getElementById("userName").innerText=data[0][3];
+
+      window.fullData=data;
       render(data);
 
-    } else {
-      alert("No data found");
+    }else{
+      alert("No data");
     }
 
-  })
-  .catch(() => alert("Server error"));
+  });
 }
 
 // RENDER
 function render(data){
+  let html="";
 
-  let html = "";
-
-  data.forEach((row, i)=>{
-
-    html += `
+  data.forEach((row,i)=>{
+    html+=`
     <div class="card" onclick="openDetail(${i})">
       <b>${row[3]}</b><br>
-      📅 ${formatDate(row[1])}<br>
-      🕒 ${formatTime(row[2])}<br>
-      🧪 Tube: ${row[7]}
-      <a href="tel:${row[4]}" class="call-btn" onclick="event.stopPropagation()">📞</a>
+      ${row[1]}<br>
+      ${row[7]}
     </div>`;
   });
 
-  window.fullData = data;
-  document.getElementById("list").innerHTML = html;
-  document.getElementById("count").innerText = data.length;
+  document.getElementById("list").innerHTML=html;
 }
 
 // NAV
 function openPatients(){
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  render(window.fullData);
+  hideAll();
+  document.getElementById("patients").style.display="block";
 }
 
-function goDashboard(){
-  document.getElementById("app").style.display = "none";
-  document.getElementById("detail").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-}
-
-// COLLECTED
 function openCollected(){
+  hideAll();
+  document.getElementById("collected").style.display="block";
 
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("app").style.display = "block";
+  let html="";
 
-  let html = `<h3 style="text-align:center;">💰 Collected</h3>`;
-
-  if(window.collectedData.length === 0){
-    html += `<p style="text-align:center;">No data yet</p>`;
-  } else {
-    window.collectedData.forEach(item=>{
-      html += `
-        <div class="card">
-          <b>${item.name}</b><br>
-          ID: ${item.id}<br>
-          Amount: ₹${item.amount}
-        </div>
-      `;
+  if(collectedData.length==0){
+    html="No data";
+  }else{
+    collectedData.forEach(i=>{
+      html+=`<div class="card">${i.name}<br>₹${i.amount}</div>`;
     });
   }
 
-  html += `<button onclick="goDashboard()">⬅ Back</button>`;
-  document.getElementById("app").innerHTML = html;
+  document.getElementById("collectedList").innerHTML=html;
+}
+
+function goDashboard(){
+  hideAll();
+  document.getElementById("dashboard").style.display="block";
+}
+
+function goPatients(){
+  hideAll();
+  document.getElementById("patients").style.display="block";
+}
+
+function hideAll(){
+  document.getElementById("dashboard").style.display="none";
+  document.getElementById("patients").style.display="none";
+  document.getElementById("collected").style.display="none";
+  document.getElementById("detail").style.display="none";
 }
 
 // DETAIL
 function openDetail(i){
+  hideAll();
+  document.getElementById("detail").style.display="block";
 
-  let row = window.fullData[i];
-  window.currentRowIndex = i;
+  let row=fullData[i];
+  window.currentRowIndex=i;
 
-  document.getElementById("app").style.display = "none";
-  document.getElementById("detail").style.display = "block";
-
-  let totalAmount = Number(row[8]) || 0;
-
-  document.getElementById("detailData").innerHTML = `
-    <div class="card">
-      <b>${row[3]}</b><br><br>
-      📅 ${formatDate(row[1])}<br>
-      🕒 ${formatTime(row[2])}<br>
-      📞 ${row[4]}<br>
-      📍 ${row[5]}<br>
-      🧪 ${row[7]}<br><br>
-      Total: ₹${totalAmount}<br>
-      Balance: ₹<span id="balance">${totalAmount}</span>
-    </div>
-  `;
-
-  let input = document.getElementById("payAmount");
-  input.value = "";
-
-  input.oninput = function(){
-    let paid = Number(this.value) || 0;
-    document.getElementById("balance").innerText = totalAmount - paid;
-  };
+  document.getElementById("detailData").innerHTML=`
+  <div class="card">
+    <b>${row[3]}</b><br>
+    ${row[4]}<br>
+    ${row[5]}<br>
+    Total: ₹${row[8]}
+  </div>`;
 }
 
-// DATE
-function formatDate(val){
-  if(!val) return "";
-  let d = new Date(val);
-  if(isNaN(d)){
-    let parts = val.split("-");
-    return parts.reverse().join("-");
-  }
-  return ("0"+d.getDate()).slice(-2)+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+d.getFullYear();
-}
-
-// TIME
-function formatTime(val){
-  let d = new Date(val);
-  if(isNaN(d)) return "";
-  let h = d.getHours();
-  let m = d.getMinutes();
-  let ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  m = m < 10 ? "0"+m : m;
-  return h+":"+m+" "+ampm;
-}
-
-// BACK
-function goBack(){
-  document.getElementById("detail").style.display = "none";
-  document.getElementById("app").style.display = "block";
-}
-
-// SAVE PAYMENT
+// SAVE
 function savePayment(){
-
-  var amount = document.getElementById("payAmount").value;
-  var rowIndex = window.currentRowIndex + 2;
-
-  fetch(API_URL, {
-    method: "POST",
-    body: new URLSearchParams({
-      action: "payment",
-      row: rowIndex,
-      amount: amount
-    })
-  })
-  .then(res => res.text())
-  .then(r=>{
-    if(r=="success"){
-      alert("Payment Saved. Now upload photo.");
-    } else {
-      alert("Failed");
-    }
-  });
+  alert("Saved. Upload photo");
 }
 
 // PHOTO
 function uploadPhoto(){
 
-  let file = document.getElementById("photoFile").files[0];
-  if(!file){
-    alert("Select photo first");
-    return;
-  }
+  let amount=document.getElementById("payAmount").value;
+  let row=fullData[currentRowIndex];
 
-  let reader = new FileReader();
+  collectedData.push({
+    name:row[3],
+    amount:amount
+  });
 
-  reader.onload = function(){
-
-    let base64 = reader.result.split(",")[1];
-    let rowIndex = window.currentRowIndex + 2;
-
-    fetch(API_URL, {
-      method: "POST",
-      body: new URLSearchParams({
-        action: "upload",
-        row: rowIndex,
-        file: base64
-      })
-    })
-    .then(res => res.text())
-    .then(r=>{
-      if(r=="success"){
-
-        let id = new Date().getTime();
-        let amount = document.getElementById("payAmount").value;
-        let row = window.fullData[window.currentRowIndex];
-
-        window.collectedData.push({
-          id: id,
-          name: row[3],
-          amount: amount
-        });
-
-        openCollected();
-
-      } else {
-        alert("Upload Failed");
-      }
-    });
-  };
-
-  reader.readAsDataURL(file);
+  openCollected();
 }
 
 // LOGOUT
