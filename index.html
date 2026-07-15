@@ -173,8 +173,8 @@ patients.push(obj);
 
 // name fix
 if(patients.length){
-localStorage.setItem("name",patients[0].data[3]);
-document.getElementById("userName").innerText=patients[0].data[3];
+localStorage.setItem("name",patients[0].data[6]);
+document.getElementById("userName").innerText=patients[0].data[6];
 }
 
 document.getElementById("userPhoto").src=localStorage.getItem("photo");
@@ -218,6 +218,8 @@ document.getElementById("detail").style.display="block";
 
 document.getElementById("detailBox").innerHTML=`
 <b>${r[3]}</b><br>
+🧪 ${r[7]}<br>
+📍 ${r[5]}<br>
 ₹${r[8]}
 `;
 }
