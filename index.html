@@ -17,67 +17,53 @@ video{width:100%;max-height:200px;}
 
 <body>
 
-<!-- LOGIN -->
 <div id="login" class="login">
-  <img src="logo.png" width="80"><br>
   <b>Health Space</b>
-
   <input id="mobile" placeholder="Mobile">
   <input id="password" type="password" placeholder="Password">
-
   <button onclick="startCamera()">Login</button>
 </div>
 
-<!-- CAMERA -->
 <div id="cameraBox" style="display:none;text-align:center">
   <video id="video" autoplay></video><br>
-  <button onclick="capturePhoto()">📸 Capture Photo</button>
+  <button onclick="capturePhoto()">Capture</button>
 </div>
 
 <canvas id="canvas" style="display:none"></canvas>
 
-<!-- DASHBOARD -->
 <div id="dashboard" style="display:none">
   <div class="header">
     <img id="userPhoto">
     <div>
-      <b id="userName"></b><br>
-      <small>Phlebotomist</small>
+      <b id="userName"></b>
     </div>
   </div>
+
+  <div class="menu">Total ₹<span id="total">0</span></div>
 
   <div class="menu" onclick="openPatients()">Patients</div>
   <div class="menu" onclick="openCollected()">Collected</div>
   <div class="menu" onclick="logout()">Logout</div>
 </div>
 
-<!-- PATIENTS -->
 <div id="patients" style="display:none">
-  <h3 style="text-align:center">Patients</h3>
+  <h3>Patients</h3>
   <div id="list"></div>
-  <button onclick="goDash()">Back</button>
 </div>
 
-<!-- COLLECTED -->
 <div id="collected" style="display:none">
-  <h3 style="text-align:center">Collected</h3>
+  <h3>Collected</h3>
   <div id="collectedList"></div>
-  <button onclick="goDash()">Back</button>
 </div>
 
-<!-- DETAIL -->
 <div id="detail" style="display:none">
-  <h3 style="text-align:center">Details</h3>
-
   <div id="detailBox"></div>
 
   <input id="pay" placeholder="Enter Amount">
-  <button onclick="payNow()">Submit Payment</button>
+  <button onclick="payNow()">Submit</button>
 
-  <input type="file" id="photo">
+  <input type="file" id="photo" accept="image/*" capture="environment">
   <button onclick="uploadPhoto()">Upload Tubes Photo</button>
-
-  <button onclick="backPatients()">Back</button>
 </div>
 
 <script>
@@ -85,25 +71,19 @@ video{width:100%;max-height:200px;}
 const API="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
 let patients=[];
-let collected = [];
+let collected=[];
 let currentRow=null;
 let paymentDone=false;
 
-// DATE
+// FORMAT FIX
 function formatDate(d){
-let dt=new Date(d);
-return ("0"+dt.getDate()).slice(-2)+"-"+("0"+(dt.getMonth()+1)).slice(-2)+"-"+dt.getFullYear();
+let x=new Date(d);
+return x.toLocaleDateString("en-GB");
 }
 
-// TIME
 function formatTime(d){
-let dt=new Date(d);
-let h=dt.getHours();
-let m=dt.getMinutes();
-let ampm=h>=12?"PM":"AM";
-h=h%12||12;
-m=m<10?"0"+m:m;
-return h+":"+m+" "+ampm;
+let x=new Date(d);
+return x.toLocaleTimeString("en-US");
 }
 
 // AUTO LOGIN
@@ -111,16 +91,16 @@ window.onload=function(){
 let t=localStorage.getItem("loginTime");
 let m=localStorage.getItem("mobile");
 
-if(t && m && (Date.now()-t)/(1000*60*60)<12){
+if(t && m && (Date.now()-t)<12*60*60*1000){
 document.getElementById("login").style.display="none";
 document.getElementById("dashboard").style.display="block";
-document.getElementById("userName").innerText=localStorage.getItem("name")||"User";
+document.getElementById("userName").innerText=localStorage.getItem("name");
 document.getElementById("userPhoto").src=localStorage.getItem("photo");
 fetchData();
 }
 };
 
-// CAMERA START
+// CAMERA
 function startCamera(){
 document.getElementById("login").style.display="none";
 document.getElementById("cameraBox").style.display="block";
@@ -133,15 +113,14 @@ document.getElementById("video").srcObject=stream;
 
 // CAPTURE
 function capturePhoto(){
-let video=document.getElementById("video");
-let canvas=document.getElementById("canvas");
+let v=document.getElementById("video");
+let c=document.getElementById("canvas");
 
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
-canvas.getContext("2d").drawImage(video,0,0);
+c.width=v.videoWidth;
+c.height=v.videoHeight;
+c.getContext("2d").drawImage(v,0,0);
 
-let photo=canvas.toDataURL("image/png");
-localStorage.setItem("photo",photo);
+localStorage.setItem("photo",c.toDataURL());
 
 login();
 }
@@ -157,80 +136,63 @@ if(p!="12345"){alert("Wrong password");return;}
 localStorage.setItem("mobile",m);
 localStorage.setItem("loginTime",Date.now());
 
-fetch(API+"?mobile="+m)
-.then(r=>r.text())
-.then(t=>{
-
-if(t.includes("<!DOCTYPE")){alert("API Error");return;}
-
-let data = JSON.parse(t);
-
-patients = data.filter(r => r[10] != "Collected");
-collected = data.filter(r => r[10] == "Collected");
-
-render();
-
-// remove already collected
-patients = patients.filter(p => !collected.find(c => c.id==p[0]));
-
-let name=patients[0][6]||"User";
-localStorage.setItem("name",name);
-
-document.getElementById("userName").innerText=name;
-document.getElementById("userPhoto").src=localStorage.getItem("photo");
-
-document.getElementById("cameraBox").style.display="none";
-document.getElementById("dashboard").style.display="block";
-
-render();
-
-});
+fetchData();
 }
 
 // FETCH
 function fetchData(){
+
 let m=localStorage.getItem("mobile");
 
 fetch(API+"?mobile="+m)
-.then(r=>r.text())
-.then(t=>{
-if(!t)return;
+.then(r=>r.json())
+.then(data=>{
 
-patients=JSON.parse(t);
+patients=[];
+collected=[];
 
-// remove collected
-patients = patients.filter(p => !collected.find(c => c.id==p[0]));
+data.forEach(obj=>{
+let r=obj.data;
+
+if(r[10]=="Collected"){
+collected.push({row:obj.row,data:r});
+}else{
+patients.push({row:obj.row,data:r});
+}
+});
+
+if(patients.length){
+localStorage.setItem("name",patients[0].data[3]);
+document.getElementById("userName").innerText=patients[0].data[3];
+}
+
+document.getElementById("userPhoto").src=localStorage.getItem("photo");
 
 render();
+renderCollected();
+updateTotal();
+
 });
 }
 
 // RENDER
 function render(){
+
 let html="";
 
-patients.forEach((r,i)=>{
+patients.forEach((p,i)=>{
+let r=p.data;
+
 html+=`
 <div class="card" onclick="openDetail(${i})">
-
 <b>${r[3]}</b><br>
-
 📅 ${formatDate(r[1])}<br>
 🕒 ${formatTime(r[2])}<br>
-
 🧪 ${r[7]}<br>
 ₹${r[8]}<br>
-
-📍 ${r[5] || ""}
-
-<br><br>
-
-<a href="tel:${r[4]}" onclick="event.stopPropagation()">📞 Call</a>
-
-&nbsp;&nbsp;
-
-<a href="https://www.google.com/maps?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">📍 Map</a>
-
+📍 ${r[5]}<br>
+<a href="tel:${r[4]}" onclick="event.stopPropagation()">📞</a>
+<a href="https://maps.google.com?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">📍</a>
 </div>`;
 });
 
@@ -240,23 +202,22 @@ document.getElementById("list").innerHTML=html;
 // DETAIL
 function openDetail(i){
 currentRow=i;
-let r=patients[i];
+let r=patients[i].data;
 
 hide();
 document.getElementById("detail").style.display="block";
 
 document.getElementById("detailBox").innerHTML=`
-<div class="card">
 <b>${r[3]}</b><br>
-🧪 ${r[7]}<br>
-Total ₹${r[8]}
-</div>`;
+₹${r[8]}
+`;
 }
 
 // PAYMENT
 function payNow(){
+
 let amt=Number(document.getElementById("pay").value);
-let total=Number(patients[currentRow][8]);
+let total=Number(patients[currentRow].data[8]);
 
 if(amt!==total){alert("Full payment required");return;}
 
@@ -266,11 +227,11 @@ fetch(API,{
 method:"POST",
 body:new URLSearchParams({
 action:"payment",
-row:currentRow+2
+row:patients[currentRow].row
 })
 });
 
-alert("Now upload tube photo");
+alert("Upload Photo");
 }
 
 // PHOTO
@@ -289,27 +250,14 @@ fetch(API,{
 method:"POST",
 body:new URLSearchParams({
 action:"upload",
-row:currentRow+2,
+row:patients[currentRow].row,
 file:base64
 })
 }).then(()=>{
 
-let p=patients[currentRow];
-
-// save collected
-collected.push({
-id:p[0],
-name:p[3],
-amount:p[8],
-tube:p[7]
-});
-
-localStorage.setItem("collected",JSON.stringify(collected));
-
-// remove from list
-patients.splice(currentRow,1);
-
-backPatients();
+fetchData();
+hide();
+document.getElementById("patients").style.display="block";
 
 });
 };
@@ -317,14 +265,14 @@ backPatients();
 reader.readAsDataURL(file);
 }
 
-// COLLECTED VIEW
-function openCollected(){
-
-hide();
+// COLLECTED
+function renderCollected(){
 
 let html="";
 
-collected.forEach(r=>{
+collected.forEach(p=>{
+let r=p.data;
+
 html+=`
 <div class="card">
 <b>${r[3]}</b><br>
@@ -334,23 +282,20 @@ html+=`
 });
 
 document.getElementById("collectedList").innerHTML=html;
-document.getElementById("collected").style.display="block";
-}
-// NAV
-function openPatients(){hide();document.getElementById("patients").style.display="block";}
-function goDash(){hide();document.getElementById("dashboard").style.display="block";}
-function backPatients(){hide();render();document.getElementById("patients").style.display="block";}
-function hide(){
-["dashboard","patients","collected","detail","cameraBox"].forEach(id=>{
-let el=document.getElementById(id);
-if(el) el.style.display="none";
-});
 }
 
-function logout(){
-localStorage.clear();
-location.reload();
+// TOTAL
+function updateTotal(){
+let t=0;
+collected.forEach(p=>t+=Number(p.data[8]||0));
+document.getElementById("total").innerText=t;
 }
+
+// NAV
+function openPatients(){hide();document.getElementById("patients").style.display="block";}
+function openCollected(){hide();document.getElementById("collected").style.display="block";}
+function hide(){["dashboard","patients","collected","detail","cameraBox"].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display="none";});}
+function logout(){localStorage.clear();location.reload();}
 
 </script>
 
