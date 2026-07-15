@@ -12,55 +12,70 @@ button{background:#1976d2;color:#fff;font-weight:bold;}
 .menu{margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:center;font-weight:bold;}
 .card{border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;}
 video{width:100%;max-height:200px;}
+.back{margin:10px;}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
 <div id="login" class="login">
+  <img src="logo.png" width="90">
   <b>Health Space</b>
+
   <input id="mobile" placeholder="Mobile">
   <input id="password" type="password" placeholder="Password">
+
   <button onclick="startCamera()">Login</button>
 </div>
 
+<!-- CAMERA -->
 <div id="cameraBox" style="display:none;text-align:center">
-  <video id="video" autoplay></video><br>
-  <button onclick="capturePhoto()">Capture</button>
+  <video id="video" autoplay playsinline></video><br>
+  <button onclick="capturePhoto()">📸 Capture & Continue</button>
 </div>
 
 <canvas id="canvas" style="display:none"></canvas>
 
+<!-- DASHBOARD -->
 <div id="dashboard" style="display:none">
   <div class="header">
     <img id="userPhoto">
     <div>
-      <b id="userName"></b>
+      <b id="userName"></b><br>
+      <small>Phlebotomist</small>
     </div>
   </div>
 
-  <div class="menu">Total ₹<span id="total">0</span></div>
+  <div class="menu">💰 Total ₹<span id="total">0</span></div>
 
   <div class="menu" onclick="openPatients()">Patients</div>
   <div class="menu" onclick="openCollected()">Collected</div>
   <div class="menu" onclick="logout()">Logout</div>
 </div>
 
+<!-- PATIENTS -->
 <div id="patients" style="display:none">
-  <h3>Patients</h3>
+  <button class="back" onclick="goDash()">⬅ Back</button>
+  <h3 style="text-align:center">Patients</h3>
   <div id="list"></div>
 </div>
 
+<!-- COLLECTED -->
 <div id="collected" style="display:none">
-  <h3>Collected</h3>
+  <button class="back" onclick="goDash()">⬅ Back</button>
+  <h3 style="text-align:center">Collected</h3>
   <div id="collectedList"></div>
 </div>
 
+<!-- DETAIL -->
 <div id="detail" style="display:none">
+  <button class="back" onclick="backPatients()">⬅ Back</button>
+
   <div id="detailBox"></div>
 
   <input id="pay" placeholder="Enter Amount">
-  <button onclick="payNow()">Submit</button>
+  <button onclick="payNow()">Submit Payment</button>
 
   <input type="file" id="photo" accept="image/*" capture="environment">
   <button onclick="uploadPhoto()">Upload Tubes Photo</button>
@@ -74,17 +89,6 @@ let patients=[];
 let collected=[];
 let currentRow=null;
 let paymentDone=false;
-
-// FORMAT FIX
-function formatDate(d){
-let x=new Date(d);
-return x.toLocaleDateString("en-GB");
-}
-
-function formatTime(d){
-let x=new Date(d);
-return x.toLocaleTimeString("en-US");
-}
 
 // AUTO LOGIN
 window.onload=function(){
@@ -102,16 +106,15 @@ fetchData();
 
 // CAMERA
 function startCamera(){
-document.getElementById("login").style.display="none";
-document.getElementById("cameraBox").style.display="block";
-
 navigator.mediaDevices.getUserMedia({video:true})
 .then(stream=>{
+document.getElementById("login").style.display="none";
+document.getElementById("cameraBox").style.display="block";
 document.getElementById("video").srcObject=stream;
 });
 }
 
-// CAPTURE
+// CAPTURE → FIXED FLOW
 function capturePhoto(){
 let v=document.getElementById("video");
 let c=document.getElementById("canvas");
@@ -120,9 +123,13 @@ c.width=v.videoWidth;
 c.height=v.videoHeight;
 c.getContext("2d").drawImage(v,0,0);
 
-localStorage.setItem("photo",c.toDataURL());
+localStorage.setItem("photo",c.toDataURL("image/jpeg",0.6));
 
-login();
+// stop camera (important ⚡)
+let stream=v.srcObject;
+stream.getTracks().forEach(track=>track.stop());
+
+login(); // direct call
 }
 
 // LOGIN
@@ -137,9 +144,12 @@ localStorage.setItem("mobile",m);
 localStorage.setItem("loginTime",Date.now());
 
 fetchData();
+
+document.getElementById("cameraBox").style.display="none";
+document.getElementById("dashboard").style.display="block";
 }
 
-// FETCH
+// FETCH (OPTIMIZED ⚡)
 function fetchData(){
 
 let m=localStorage.getItem("mobile");
@@ -155,12 +165,13 @@ data.forEach(obj=>{
 let r=obj.data;
 
 if(r[10]=="Collected"){
-collected.push({row:obj.row,data:r});
+collected.push(obj);
 }else{
-patients.push({row:obj.row,data:r});
+patients.push(obj);
 }
 });
 
+// name fix
 if(patients.length){
 localStorage.setItem("name",patients[0].data[3]);
 document.getElementById("userName").innerText=patients[0].data[3];
@@ -177,7 +188,6 @@ updateTotal();
 
 // RENDER
 function render(){
-
 let html="";
 
 patients.forEach((p,i)=>{
@@ -186,11 +196,10 @@ let r=p.data;
 html+=`
 <div class="card" onclick="openDetail(${i})">
 <b>${r[3]}</b><br>
-📅 ${formatDate(r[1])}<br>
-🕒 ${formatTime(r[2])}<br>
 🧪 ${r[7]}<br>
 ₹${r[8]}<br>
 📍 ${r[5]}<br>
+
 <a href="tel:${r[4]}" onclick="event.stopPropagation()">📞</a>
 <a href="https://maps.google.com?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">📍</a>
 </div>`;
@@ -215,7 +224,6 @@ document.getElementById("detailBox").innerHTML=`
 
 // PAYMENT
 function payNow(){
-
 let amt=Number(document.getElementById("pay").value);
 let total=Number(patients[currentRow].data[8]);
 
@@ -231,7 +239,7 @@ row:patients[currentRow].row
 })
 });
 
-alert("Upload Photo");
+alert("Now upload photo");
 }
 
 // PHOTO
@@ -254,11 +262,8 @@ row:patients[currentRow].row,
 file:base64
 })
 }).then(()=>{
-
 fetchData();
-hide();
-document.getElementById("patients").style.display="block";
-
+backPatients();
 });
 };
 
@@ -267,7 +272,6 @@ reader.readAsDataURL(file);
 
 // COLLECTED
 function renderCollected(){
-
 let html="";
 
 collected.forEach(p=>{
@@ -294,8 +298,14 @@ document.getElementById("total").innerText=t;
 // NAV
 function openPatients(){hide();document.getElementById("patients").style.display="block";}
 function openCollected(){hide();document.getElementById("collected").style.display="block";}
+function goDash(){hide();document.getElementById("dashboard").style.display="block";}
+function backPatients(){hide();document.getElementById("patients").style.display="block";}
 function hide(){["dashboard","patients","collected","detail","cameraBox"].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display="none";});}
-function logout(){localStorage.clear();location.reload();}
+
+function logout(){
+localStorage.clear();
+location.reload();
+}
 
 </script>
 
