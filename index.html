@@ -188,6 +188,7 @@ updateTotal();
 
 // RENDER
 function render(){
+
 let html="";
 
 patients.forEach((p,i)=>{
@@ -196,7 +197,7 @@ let r=p.data;
 html+=`
 <div class="card" onclick="openDetail(${i})">
 <b>${r[3]}</b><br>
-⌚ ${r[2]}<br>
+⌚ ${formatTime(r[2])}<br>
 🧪 ${r[7]}<br>
 ₹${r[8]}<br>
 📍 ${r[5]}<br>
@@ -208,7 +209,40 @@ html+=`
 
 document.getElementById("list").innerHTML=html;
 }
+// Time
+function formatTime(val){
 
+if(!val) return "";
+
+// Case 1: Proper date string
+let d = new Date(val);
+
+if(!isNaN(d)){
+  let h = d.getHours();
+  let m = d.getMinutes();
+
+  let ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  m = m < 10 ? "0"+m : m;
+
+  return h + ":" + m + " " + ampm;
+}
+
+// Case 2: Google Sheet time number (e.g. 0.5)
+if(!isNaN(val)){
+  let totalMinutes = Math.floor(val * 24 * 60);
+  let h = Math.floor(totalMinutes / 60);
+  let m = totalMinutes % 60;
+
+  let ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  m = m < 10 ? "0"+m : m;
+
+  return h + ":" + m + " " + ampm;
+}
+
+return val;
+}
 // DETAIL
 function openDetail(i){
 currentRow=i;
@@ -224,7 +258,6 @@ document.getElementById("detailBox").innerHTML=`
 ₹${r[8]}
 `;
 }
-
 // PAYMENT
 function payNow(){
 let amt=Number(document.getElementById("pay").value);
