@@ -196,6 +196,7 @@ let r=p.data;
 html+=`
 <div class="card" onclick="openDetail(${i})">
 <b>${r[3]}</b><br>
+⌚ ${r[2]}<br>
 🧪 ${r[7]}<br>
 ₹${r[8]}<br>
 📍 ${r[5]}<br>
@@ -217,8 +218,7 @@ hide();
 document.getElementById("detail").style.display="block";
 
 document.getElementById("detailBox").innerHTML=`
-<b>${r[3]}</b><br>
-⌚ ${r[2]}<br>  
+<b>${r[3]}</b><br>  
 🧪 ${r[7]}<br>
 📍 ${r[5]}<br>
 ₹${r[8]}
