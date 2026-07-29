@@ -2,127 +2,411 @@
 <html lang="mr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Health Space - Phlebo Field App</title>
+  <!-- FontAwesome Icons & Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 15px; }
-    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #2196F3; }
-    .locked { opacity: 0.5; pointer-events: none; border-left-color: #9e9e9e; }
-    .status-badge { display: inline-block; padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
-    .paid { background: #e8f5e9; color: #2e7d32; }
-    .due { background: #ffebee; color: #c62828; }
-    .btn { background: #2196F3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; font-size: 14px; }
-    .btn-danger { background: #f44336; }
-    .btn-success { background: #4CAF50; }
-    .qr-box { text-align: center; margin: 10px 0; display: none; }
-    .qr-box img { width: 180px; height: 180px; }
-    input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    .lock-msg { color: #d32f2f; font-weight: bold; font-size: 13px; margin-top: 5px; }
+    :root {
+      --primary: #0288d1;
+      --primary-dark: #01579b;
+      --secondary: #26a69a;
+      --bg: #f4f7f9;
+      --card-bg: #ffffff;
+      --text-main: #2c3e50;
+      --text-muted: #7f8c8d;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --success: #2ecc71;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); padding-bottom: 30px; }
+
+    /* App Header / Branding */
+    .app-header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: white;
+      padding: 20px 15px;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-row { display: flex; align-items: center; justify-content: space-between; }
+    .logo-box { display: flex; align-items: center; gap: 10px; }
+    .logo-box i { font-size: 28px; color: #e0f7fa; }
+    .brand-title { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+    .sub-title { font-size: 11px; opacity: 0.85; text-transform: uppercase; }
+
+    /* Dashboard Stats Cards */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding: 15px;
+      margin-top: -10px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .stat-card .num { font-size: 18px; font-weight: 700; color: var(--primary); }
+    .stat-card .label { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+    /* Search & Controls */
+    .search-box { padding: 0 15px 10px 15px; }
+    .search-input {
+      width: 100%;
+      padding: 12px 15px 12px 40px;
+      border: 1px solid #e0e0e0;
+      border-radius: 25px;
+      outline: none;
+      font-size: 14px;
+      background: var(--card-bg);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    }
+    .search-wrapper { position: relative; }
+    .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+    /* Patient Cards */
+    .patient-list { padding: 0 15px; }
+    .patient-card {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 16px;
+      margin-bottom: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      border-left: 5px solid var(--primary);
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    /* Sequence Lock Styling */
+    .patient-card.locked {
+      border-left-color: #bdc3c7;
+      opacity: 0.65;
+      background: #fafafa;
+    }
+    .lock-overlay-badge {
+      background: #eceff1;
+      color: #546e7a;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+
+    .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .time-slot { background: #e1f5fe; color: var(--primary-dark); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
+    .p-name { font-size: 16px; font-weight: 600; color: var(--text-main); }
+    .p-id { font-size: 11px; color: var(--text-muted); }
+
+    .info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #4a5568; margin-top: 6px; }
+    .info-row i { width: 16px; color: var(--primary); }
+
+    .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .badge-paid { background: #d4edda; color: #155724; }
+    .badge-due { background: #f8d7da; color: #721c24; }
+    .badge-done { background: #cce5ff; color: #004085; }
+
+    /* Action Buttons */
+    .btn-group { display: flex; gap: 8px; margin-top: 15px; }
+    .btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: #fef2f2; color: var(--danger); border: 1px solid #fca5a5; }
+
+    /* Modals (QR Code & Reschedule) */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-content h3 { font-size: 18px; margin-bottom: 12px; }
+    .modal-content input, .modal-content select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .qr-img { width: 190px; height: 190px; margin: 15px 0; border: 1px solid #eee; border-radius: 8px; padding: 5px; }
+
+    /* Loader */
+    .loader { text-align: center; padding: 40px; color: var(--text-muted); }
   </style>
 </head>
 <body>
 
-  <h2>📋 Health Space Field Visits</h2>
-  <div id="patient-list">लोड होत आहे...</div>
+  <!-- App Bar -->
+  <header class="app-header">
+    <div class="brand-row">
+      <div class="logo-box">
+        <i class="fa-solid fa-heart-pulse"></i>
+        <div>
+          <div class="brand-title">HEALTH SPACE</div>
+          <div class="sub-title">Phlebo Field App</div>
+        </div>
+      </div>
+      <i class="fa-solid fa-rotate-right" onclick="loadPatients()" style="cursor: pointer; font-size: 18px;"></i>
+    </div>
+  </header>
+
+  <!-- Dashboard Stats -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="num" id="stat-total">0</div>
+      <div class="label">एकूण पेशंट्स</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="stat-done" style="color: var(--success);">0</div>
+      <div class="label">पूर्ण (Done)</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="stat-pending" style="color: var(--warning);">0</div>
+      <div class="label">बाकी (Pending)</div>
+    </div>
+  </div>
+
+  <!-- Search Filter -->
+  <div class="search-box">
+    <div class="search-wrapper">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" class="search-input" placeholder="पेशंटचे नाव किंवा मोबाईल नंबर शोधा..." onkeyup="filterPatients()">
+    </div>
+  </div>
+
+  <!-- Patients List View -->
+  <div class="patient-list" id="patientContainer">
+    <div class="loader">
+      <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+      <p style="margin-top: 10px;">डेटा लोड होत आहे...</p>
+    </div>
+  </div>
+
+  <!-- Modal 1: Dynamic UPI Payment Modal -->
+  <div class="modal" id="qrModal">
+    <div class="modal-content">
+      <h3><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> UPI QR Scan</h3>
+      <p style="font-size: 13px; color: var(--text-muted);">healthspace@ybl</p>
+      <img id="qrImage" class="qr-img" src="" alt="UPI QR">
+      <p style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">रक्कम: ₹<span id="qrAmount">0</span></p>
+      <button class="btn btn-success" id="confirmPaymentBtn" style="width: 100%;">
+        <i class="fa-solid fa-check-circle"></i> पेमेंट जमा झाले (Payment Done)
+      </button>
+      <button class="btn btn-danger" onclick="closeModal('qrModal')" style="width: 100%; margin-top: 8px; background: transparent;">बंद करा</button>
+    </div>
+  </div>
+
+  <!-- Modal 2: Sample Not Collected / Reschedule Modal -->
+  <div class="modal" id="rescheduleModal">
+    <div class="modal-content">
+      <h3 style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> सॅम्पल न घेण्याचे कारण</h3>
+      <input type="text" id="resReason" placeholder="कारण लिहा (उदा. Patient Not Available / Refused)">
+      <label style="font-size: 11px; display: block; text-align: left; margin-top: 5px; font-weight: 600;">री-शेड्युल तारीख:</label>
+      <input type="date" id="resDate">
+      <label style="font-size: 11px; display: block; text-align: left; margin-top: 5px; font-weight: 600;">री-शेड्युल वेळ:</label>
+      <input type="time" id="resTime">
+      
+      <button class="btn btn-danger" id="submitRescheduleBtn" style="width: 100%; margin-top: 12px; background: var(--danger); color: white;">
+        <i class="fa-solid fa-paper-plane"></i> सबमिट करा
+      </button>
+      <button class="btn" onclick="closeModal('rescheduleModal')" style="width: 100%; margin-top: 8px; background: transparent; color: var(--text-muted);">रद्द करा</button>
+    </div>
+  </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec"; // तुमची Apps Script URL टाकणे
+    // Config Configuration
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec"; // तुमची Apps Script Web App URL येथे टाका
     const UPI_ID = "healthspace@ybl";
 
-    async function fetchPatients() {
-      const res = await fetch(SCRIPT_URL + "?mobile=all");
-      const data = await res.json();
-      
-      // वेळेनुसार शॉटिंग करणे (Time Slot Sequence)
-      data.sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
+    let globalPatients = [];
+    let activeRowForAction = null;
 
-      const container = document.getElementById('patient-list');
+    async function loadPatients() {
+      const container = document.getElementById('patientContainer');
+      container.innerHTML = `
+        <div class="loader">
+          <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+          <p style="margin-top: 10px;">डेटा लोड होत आहे...</p>
+        </div>`;
+
+      try {
+        const response = await fetch(SCRIPT_URL + "?mobile=all");
+        globalPatients = await response.json();
+        
+        // Time Slot Sequence अनुसार सॉर्टिंग करणे
+        globalPatients.sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
+
+        updateDashboardStats(globalPatients);
+        renderPatients(globalPatients);
+      } catch (err) {
+        container.innerHTML = `<p style="text-align:center; color:red; padding:20px;">डेटा लोड करताना त्रुटी आली. नेटवर्क तपासा.</p>`;
+      }
+    }
+
+    function updateDashboardStats(data) {
+      document.getElementById('stat-total').innerText = data.length;
+      const done = data.filter(p => p.status === "Collected" || p.status === "Rescheduled").length;
+      document.getElementById('stat-done').innerText = done;
+      document.getElementById('stat-pending').innerText = data.length - done;
+    }
+
+    function renderPatients(patients) {
+      const container = document.getElementById('patientContainer');
       container.innerHTML = '';
 
-      let previousDone = true; // पहिला पेशंट अनलॉक असेल
+      if (patients.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color: var(--text-muted); padding:30px;">कोणतेही बुकिंग उपलब्ध नाही.</p>`;
+        return;
+      }
 
-      data.forEach((p, index) => {
+      let previousDone = true; // आधीचा पेशंट पूर्ण झाला आहे की नाही याचा फ्लॅग
+
+      patients.forEach((p, index) => {
         const isPaid = p.paymentStatus === "Yes";
         const isDone = p.status === "Collected" || p.status === "Rescheduled";
-        const isLocked = !previousDone;
+        const isLocked = !previousDone; // सिक्वेन्स लॉक नियम
 
-        let html = `
-          <div class="card ${isLocked ? 'locked' : ''}">
-            <h3>${p.patientName} (${p.timeSlot})</h3>
-            <p><strong>पत्ता:</strong> ${p.address}</p>
-            <p><strong>चाचण्या:</strong> ${p.tests}</p>
-            <p><strong>रक्कम:</strong> ₹${p.amount} 
-              <span class="status-badge ${isPaid ? 'paid' : 'due'}">${isPaid ? 'PAID' : 'DUE'}</span>
-            </p>
-            
-            ${isLocked ? '<div class="lock-msg">🔒 आधीचा पेशंट पूर्ण झाल्याशिवाय हे अनलॉक होणार नाही.</div>' : ''}
+        const card = document.createElement('div');
+        card.className = `patient-card ${isLocked ? 'locked' : ''}`;
 
-            <!-- 1. पेमेंट सेक्‍शन -->
-            ${!isPaid && !isLocked ? `
-              <hr>
-              <button class="btn" onclick="showQR('${p.amount}', 'qr-${index}')">📲 Online UPI QR दाखवा</button>
-              <div id="qr-${index}" class="qr-box">
-                <p>स्कॅन करून ₹${p.amount} भरा:</p>
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${UPI_ID}%26pn=HealthSpace%26am=${p.amount}%26cu=INR" alt="QR">
-                <button class="btn btn-success" onclick="markPaid(${p.row})">कन्फर्म पेमेंट (Payment Done)</button>
-              </div>
-              <button class="btn btn-success" style="margin-top:5px;" onclick="markPaid(${p.row})">💵 Cash Received</button>
-            ` : ''}
-
-            <!-- 2. सॅम्पल फोटो अपलोड (फक्त Paid असल्‍यावरच) -->
-            ${isPaid && !isDone && !isLocked ? `
-              <hr>
-              <label><strong>Tube Photo अपलोड करा:</strong></label>
-              <input type="file" id="file-${p.row}" accept="image/*">
-              <button class="btn btn-success" onclick="uploadPhoto(${p.row})">Upload Photo & Complete</button>
-            ` : ''}
-
-            <!-- 3. सॅम्पल Not Collected / Reschedule -->
-            ${!isDone && !isLocked ? `
-              <hr>
-              <button class="btn btn-danger" onclick="toggleReschedule('res-${index}')">❌ Sample Not Collected</button>
-              <div id="res-${index}" style="display:none; margin-top:10px;">
-                <input type="text" id="reason-${p.row}" placeholder="न घेण्याचे कारण (उदा. Patient Unavailable)">
-                <label>नवी तारीख:</label>
-                <input type="date" id="date-${p.row}">
-                <label>नवी वेळ:</label>
-                <input type="time" id="time-${p.row}">
-                <button class="btn btn-danger" onclick="submitReschedule(${p.row})">Submit & Reschedule</button>
-              </div>
-            ` : ''}
-
-            ${isDone ? `<div style="color:green; font-weight:bold; margin-top:10px;">✅ Status: ${p.status}</div>` : ''}
+        card.innerHTML = `
+          <div class="card-header">
+            <div>
+              <div class="p-name">${p.patientName}</div>
+              <div class="p-id">ID: ${p.bookingId}</div>
+            </div>
+            <span class="time-slot"><i class="fa-regular fa-clock"></i> ${p.timeSlot}</span>
           </div>
+
+          <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span>${p.address || 'पत्ता उपलब्ध नाही'}</span></div>
+          <div class="info-row"><i class="fa-solid fa-vial"></i> <span>${p.packageName}</span></div>
+          <div class="info-row"><i class="fa-solid fa-phone"></i> <span>${p.phone}</span></div>
+          
+          <div class="info-row" style="margin-top: 10px; justify-content: space-between;">
+            <div><strong>रक्कम:</strong> ₹${p.amount}</div>
+            <div>
+              <span class="badge ${isPaid ? 'badge-paid' : 'badge-due'}">${isPaid ? 'PAID' : 'PAYMENT DUE'}</span>
+              ${isDone ? `<span class="badge badge-done">${p.status}</span>` : ''}
+            </div>
+          </div>
+
+          ${isLocked ? `
+            <div class="lock-overlay-badge">
+              <i class="fa-solid fa-lock"></i> आधीचा पेशंट पूर्ण झाल्यावरच हे अनलॉक होईल
+            </div>
+          ` : ''}
+
+          <!-- ॲक्शन बटन्स (फक्त जर अनलॉक असेल आणि पूर्ण झाले नसेल तरच) -->
+          ${!isDone && !isLocked ? `
+            <div class="btn-group">
+              ${!isPaid ? `
+                <button class="btn btn-primary" onclick="openQRModal('${p.amount}', ${p.row})">
+                  <i class="fa-solid fa-qrcode"></i> UPI QR
+                </button>
+                <button class="btn btn-success" onclick="markPaidDirect(${p.row})">
+                  <i class="fa-solid fa-money-bill-wave"></i> Cash
+                </button>
+              ` : `
+                <button class="btn btn-success" style="flex:2;" onclick="triggerFileInput(${p.row})">
+                  <i class="fa-solid fa-camera"></i> Tube Photo & Complete
+                </button>
+                <input type="file" id="fileInput-${p.row}" accept="image/*" style="display:none;" onchange="handleFileUpload(${p.row})">
+              `}
+              <button class="btn btn-danger" onclick="openRescheduleModal(${p.row})">
+                <i class="fa-solid fa-xmark"></i> Not Collected
+              </button>
+            </div>
+          ` : ''}
         `;
 
-        container.innerHTML += html;
+        container.appendChild(card);
 
-        // जर हा पेशंट कम्प्लीट झाला नसेल, तर पुढचे सर्व पेशंट्स ब्लॉक होतील
+        // जर हा पेशंट पूर्ण झालेला नसेल, तर यापुढचे पेशंट्स लॉक होतील
         if (!isDone) {
           previousDone = false;
         }
       });
     }
 
-    function showQR(amount, elementId) {
-      document.getElementById(elementId).style.display = 'block';
+    // Modal Actions & API Calls
+    function openQRModal(amount, row) {
+      activeRowForAction = row;
+      document.getElementById('qrAmount').innerText = amount;
+      document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${UPI_ID}%26pn=HealthSpace%26am=${amount}%26cu=INR`;
+      document.getElementById('qrModal').style.display = 'flex';
     }
 
-    function toggleReschedule(id) {
-      const el = document.getElementById(id);
-      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    document.getElementById('confirmPaymentBtn').onclick = async function() {
+      if(!activeRowForAction) return;
+      closeModal('qrModal');
+      await executePaymentAPI(activeRowForAction);
+    };
+
+    async function markPaidDirect(row) {
+      if(confirm("कॅश पेमेंट जमा झाले आहे का?")) {
+        await executePaymentAPI(row);
+      }
     }
 
-    async function markPaid(row) {
-      if(!confirm("पेमेंट जमा झाले आहे याची खात्री आहे का?")) return;
-      await fetch(`${SCRIPT_URL}?action=payment&row=${row}`, { method: 'POST' });
-      alert("पेमेंट अपडेट झाले!");
-      fetchPatients();
+    async function executePaymentAPI(row) {
+      try {
+        await fetch(`${SCRIPT_URL}?action=payment&row=${row}`, { method: 'POST' });
+        alert("पेमेंट यशस्वीरीत्या अपडेट झाले!");
+        loadPatients();
+      } catch (e) {
+        alert("पेमेंट अपडेट करताना त्रुटी आली.");
+      }
     }
 
-    async function uploadPhoto(row) {
-      const fileInput = document.getElementById(`file-${row}`);
-      if (!fileInput.files[0]) return alert("कृपया फोटो निवडा!");
+    function triggerFileInput(row) {
+      document.getElementById(`fileInput-${row}`).click();
+    }
+
+    async function handleFileUpload(row) {
+      const fileInput = document.getElementById(`fileInput-${row}`);
+      if (!fileInput.files[0]) return;
 
       const reader = new FileReader();
       reader.onload = async function () {
@@ -130,31 +414,61 @@
         const formData = new URLSearchParams();
         formData.append("file", base64);
 
-        await fetch(`${SCRIPT_URL}?action=upload&row=${row}`, {
-          method: 'POST',
-          body: formData
-        });
-        alert("सॅम्पल यशस्वीरीत्या सबमिट झाले!");
-        fetchPatients();
+        try {
+          alert("फोटो अपलोड होत आहे, कृपया वाट पाहा...");
+          await fetch(`${SCRIPT_URL}?action=upload&row=${row}`, {
+            method: 'POST',
+            body: formData
+          });
+          alert("सॅम्पल फोटो अपलोड झाला व बुकिंग Complete झाले!");
+          loadPatients();
+        } catch(e) {
+          alert("फोटो अपलोड करताना एरर आला.");
+        }
       };
       reader.readAsDataURL(fileInput.files[0]);
     }
 
-    async function submitReschedule(row) {
-      const reason = document.getElementById(`reason-${row}`).value;
-      const newDate = document.getElementById(`date-${row}`).value;
-      const newTime = document.getElementById(`time-${row}`).value;
-
-      if (!reason || !newDate || !newTime) return alert("कृपया संपूर्ण माहिती भरा!");
-
-      await fetch(`${SCRIPT_URL}?action=reschedule&row=${row}&reason=${encodeURIComponent(reason)}&newDate=${newDate}&newTime=${newTime}`, {
-        method: 'POST'
-      });
-      alert("पेशंट री-शेड्युल करण्यात आला आहे!");
-      fetchPatients();
+    function openRescheduleModal(row) {
+      activeRowForAction = row;
+      document.getElementById('rescheduleModal').style.display = 'flex';
     }
 
-    fetchPatients();
+    document.getElementById('submitRescheduleBtn').onclick = async function() {
+      const reason = document.getElementById('resReason').value;
+      const newDate = document.getElementById('resDate').value;
+      const newTime = document.getElementById('resTime').value;
+
+      if(!reason) return alert("कृपया कारण नमूद करा!");
+
+      closeModal('rescheduleModal');
+      try {
+        await fetch(`${SCRIPT_URL}?action=reschedule&row=${activeRowForAction}&reason=${encodeURIComponent(reason)}&newDate=${newDate}&newTime=${newTime}`, {
+          method: 'POST'
+        });
+        alert("सॅम्पल स्टेटस अपडेट झाले आणि री-शेड्युल केले गेले!");
+        loadPatients();
+      } catch(e) {
+        alert("री-शेड्युल सबमिट करताना एरर आला.");
+      }
+    };
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function filterPatients() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = globalPatients.filter(p => 
+        p.patientName.toLowerCase().includes(query) || 
+        p.phone.includes(query) ||
+        p.bookingId.toLowerCase().includes(query)
+      );
+      renderPatients(filtered);
+    }
+
+    // First Initial Load
+    loadPatients();
   </script>
 </body>
 </html>
