@@ -264,10 +264,10 @@ const API = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3o
 let patients = [];
 let collected = [];
 let currentRowIndex = null;
-let paymentDone = false;
+let activePatient = null; // 🔒 lock system
 
 // AUTO LOGIN
-window.onload = function() {
+window.onload = function () {
   let t = localStorage.getItem("loginTime");
   let m = localStorage.getItem("mobile");
 
@@ -277,27 +277,26 @@ window.onload = function() {
   }
 };
 
+// CAMERA
 function startCamera() {
   let m = document.getElementById("mobile").value;
   let p = document.getElementById("password").value;
 
-  if (!m) { alert("Please enter mobile number"); return; }
-  if (p !== "12345") { alert("Wrong password"); return; }
+  if (!m) return alert("Enter mobile");
+  if (p !== "12345") return alert("Wrong password");
 
   localStorage.setItem("mobile", m);
 
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+  navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
       hideAll();
       document.getElementById("cameraBox").style.display = "block";
       document.getElementById("video").srcObject = stream;
     })
-    .catch(err => {
-      alert("Camera access denied or not available. Continuing login...");
-      loginSuccess();
-    });
+    .catch(() => loginSuccess());
 }
 
+// CAPTURE
 function capturePhoto() {
   let v = document.getElementById("video");
   let c = document.getElementById("canvas");
@@ -308,9 +307,7 @@ function capturePhoto() {
 
   localStorage.setItem("photo", c.toDataURL("image/jpeg", 0.6));
 
-  if (v.srcObject) {
-    v.srcObject.getTracks().forEach(track => track.stop());
-  }
+  if (v.srcObject) v.srcObject.getTracks().forEach(t => t.stop());
 
   loginSuccess();
 }
@@ -321,228 +318,150 @@ function loginSuccess() {
   fetchData();
 }
 
+// DASHBOARD
 function showDashboard() {
   hideAll();
   document.getElementById("dashboard").style.display = "block";
-  document.getElementById("userName").innerText = localStorage.getItem("name") || "Phlebotomist";
-  document.getElementById("userPhoto").src = localStorage.getItem("photo") || "https://via.placeholder.com/50";
+  document.getElementById("userPhoto").src = localStorage.getItem("photo") || "";
 }
 
-// FETCH DATA
+// FETCH
 function fetchData() {
   let m = localStorage.getItem("mobile");
-  document.getElementById("loader").style.display = "block";
 
   fetch(API + "?mobile=" + encodeURIComponent(m))
     .then(r => r.json())
     .then(data => {
-      document.getElementById("loader").style.display = "none";
       patients = [];
       collected = [];
 
-      data.forEach(obj => {
-        let status = String(obj.data[10]).trim(); // Col K (Index 10)
-        if (status.toLowerCase() === "collected") {
-          collected.push(obj);
-        } else {
-          patients.push(obj);
-        }
+      data.forEach(p => {
+        let r = p.data;
+        if ((r[10] || "").toLowerCase() === "collected") collected.push(p);
+        else patients.push(p);
       });
-
-      if (patients.length && patients[0].data[6]) {
-        localStorage.setItem("name", patients[0].data[6]);
-        document.getElementById("userName").innerText = patients[0].data[6];
-      }
 
       render();
       renderCollected();
-      updateTotal();
-    })
-    .catch(err => {
-      document.getElementById("loader").style.display = "none";
-      console.error("Error fetching data:", err);
     });
 }
 
-// RENDER PENDING PATIENTS
+// RENDER
 function render() {
   let html = "";
-  if (patients.length === 0) {
-    html = "<p style='text-align:center; padding:30px; color:#64748b;'>No pending patients assigned.</p>";
-  } else {
-    patients.forEach((p, i) => {
-      let r = p.data;
-      html += `
-      <div class="card" onclick="openDetail(${i})">
-        <span class="time-badge"><i class="fa-regular fa-clock"></i> ${formatTime(r[2])}</span>
-        <b>👤 ${r[3] || 'N/A'}</b>
-        <div class="card-info"><i class="fa-solid fa-vial"></i> <span>Test: ${r[7] || 'N/A'}</span></div>
-        <div class="card-info"><i class="fa-solid fa-indian-rupee-sign"></i> <span>Amount: ₹${r[8] || 0}</span></div>
-        <div class="card-info"><i class="fa-solid fa-location-dot"></i> <span>${r[5] || 'N/A'}</span></div>
-        
-        <div class="card-actions">
-          <a href="tel:${r[4]}" onclick="event.stopPropagation()">
-            <i class="fa-solid fa-phone" style="color:#2e7d32;"></i> Call
-          </a>
-          <a href="https://maps.google.com/?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">
-            <i class="fa-solid fa-map-location-dot" style="color:#1976d2;"></i> Map
-          </a>
-        </div>
-      </div>`;
-    });
-  }
+
+  patients.forEach((p, i) => {
+    let r = p.data;
+
+    let locked = activePatient !== null && activePatient !== i;
+
+    html += `
+    <div class="card" onclick="${locked ? '' : `openDetail(${i})`}" style="${locked ? 'opacity:0.5' : ''}">
+      <b>${r[3]}</b><br>
+      🧪 ${r[7]}<br>
+      ₹${r[8]}<br>
+      📍 ${r[5]}
+
+      <div style="margin-top:10px;">
+        ${activePatient === i 
+          ? `<button onclick="completePatient(event)">Complete</button>` 
+          : `<button onclick="startPatient(event, ${i})" ${locked ? 'disabled' : ''}>Start</button>`
+        }
+      </div>
+    </div>`;
+  });
+
   document.getElementById("list").innerHTML = html;
 }
 
-// DETAIL VIEW
-function openDetail(i) {
-  currentRowIndex = i;
-  paymentDone = (patients[i].data[12] === "Yes"); // Col M check
-  let r = patients[i].data;
+// START
+function startPatient(e, i) {
+  e.stopPropagation();
+  if (activePatient !== null) return alert("Finish current patient first");
 
-  hideAll();
-  document.getElementById("detail").style.display = "block";
-  document.getElementById("pay").value = r[8] || "";
-
-  document.getElementById("detailBox").innerHTML = `
-    <div style="font-size:17px; font-weight:700; margin-bottom:8px;">👤 ${r[3]}</div>
-    <div class="card-info"><i class="fa-solid fa-vial"></i> <b>Test:</b> ${r[7]}</div>
-    <div class="card-info"><i class="fa-solid fa-location-dot"></i> <b>Address:</b> ${r[5]}</div>
-    <div class="card-info"><i class="fa-solid fa-phone"></i> <b>Phone:</b> ${r[4]}</div>
-    <div class="card-info"><i class="fa-solid fa-receipt"></i> <b>Bill Amount:</b> ₹${r[8]}</div>
-    
-    <div class="card-actions" style="margin-top:12px;">
-      <a href="tel:${r[4]}"><i class="fa-solid fa-phone" style="color:#2e7d32;"></i> Call Patient</a>
-      <a href="https://maps.google.com/?q=${encodeURIComponent(r[5])}" target="_blank"><i class="fa-solid fa-map-location-dot" style="color:#1976d2;"></i> Open Map</a>
-    </div>
-  `;
+  activePatient = i;
+  render();
 }
 
-// SUBMIT PAYMENT
-function payNow() {
-  let amt = Number(document.getElementById("pay").value);
+// COMPLETE
+function completePatient(e) {
+  e.stopPropagation();
 
-  if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
-  
-  let btn = document.getElementById("payBtn");
-  btn.disabled = true;
-  btn.innerText = "Submitting...";
+  let p = patients[activePatient];
 
   fetch(API, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       action: "payment",
-      row: patients[currentRowIndex].row
+      row: p.row
     })
-  })
-  .then(r => r.json())
-  .then(res => {
-    btn.disabled = false;
-    btn.innerText = "Submit Payment";
-    if (res.result === "success") {
-      paymentDone = true;
-      alert("✅ Payment recorded successfully! Now upload tube photo.");
-    } else {
-      alert("Error: " + res.message);
-    }
-  })
-  .catch(err => {
-    btn.disabled = false;
-    btn.innerText = "Submit Payment";
-    alert("Network Error!");
+  }).then(() => {
+
+    collected.push(p);
+    patients.splice(activePatient, 1);
+
+    activePatient = null;
+
+    render();
+    renderCollected();
   });
 }
 
-// UPLOAD PHOTO
+// DETAIL
+function openDetail(i) {
+  if (activePatient !== i) return alert("Start patient first");
+
+  currentRowIndex = i;
+
+  hideAll();
+  document.getElementById("detail").style.display = "block";
+}
+
+// PHOTO UPLOAD
 function uploadPhoto() {
-  let fileInput = document.getElementById("photo");
-  let file = fileInput.files[0];
-
-  if (!file) { alert("Please select or capture a photo first!"); return; }
-
-  let btn = document.getElementById("uploadBtn");
-  btn.disabled = true;
-  btn.innerText = "Uploading Photo...";
+  let file = document.getElementById("photo").files[0];
+  if (!file) return alert("Select photo");
 
   let reader = new FileReader();
-  reader.onload = function() {
+
+  reader.onload = function () {
     let base64 = reader.result.split(",")[1];
+
+    let p = patients[currentRowIndex];
 
     fetch(API, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         action: "upload",
-        row: patients[currentRowIndex].row,
+        row: p.row,
         file: base64
       })
-    })
-    .then(r => r.json())
-    .then(res => {
-      btn.disabled = false;
-      btn.innerText = "Upload Photo & Complete";
-
-      if (res.result === "success") {
-        alert("🎉 Sample collected & photo saved to Drive!");
-        fileInput.value = "";
-        fetchData();
-        openCollected();
-      } else {
-        alert("Upload failed: " + res.message);
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Upload Photo & Complete";
-      alert("Error uploading file to server.");
+    }).then(() => {
+      alert("Uploaded");
+      fetchData();
+      openCollected();
     });
   };
 
   reader.readAsDataURL(file);
 }
 
-// COLLECTED TAB
+// COLLECTED
 function renderCollected() {
   let html = "";
-  if (collected.length === 0) {
-    html = "<p style='text-align:center; padding:30px; color:#64748b;'>No collected records yet.</p>";
-  } else {
-    collected.forEach(p => {
-      let r = p.data;
-      html += `
-      <div class="card" style="border-left-color: #2e7d32;">
-        <b>👤 ${r[3]}</b>
-        <div class="card-info"><i class="fa-solid fa-vial"></i> ${r[7]}</div>
-        <div class="card-info"><i class="fa-solid fa-circle-check" style="color:#2e7d32;"></i> <b>Collected:</b> ₹${r[8]}</div>
-        ${r[11] ? `<div class="card-actions"><a href="${r[11]}" target="_blank"><i class="fa-solid fa-image"></i> View Tubes Photo</a></div>` : ''}
-      </div>`;
-    });
-  }
+
+  collected.forEach(p => {
+    let r = p.data;
+    html += `<div class="card"><b>${r[3]}</b><br>₹${r[8]}</div>`;
+  });
+
   document.getElementById("collectedList").innerHTML = html;
 }
 
-function updateTotal() {
-  let total = 0;
-  collected.forEach(p => total += Number(p.data[8] || 0));
-  document.getElementById("total").innerText = total;
-}
-
-// TIME FORMATTER (12-Hour format)
-function formatTime(val) {
-  if (!val) return "N/A";
-  let d = new Date(val);
-  if (!isNaN(d.getTime())) {
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-  }
-  return val;
-}
-
-// NAVIGATION
+// NAV
 function openPatients() { hideAll(); document.getElementById("patients").style.display = "block"; }
 function openCollected() { hideAll(); document.getElementById("collected").style.display = "block"; }
 function goDash() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
-function backPatients() { openPatients(); }
 
 function hideAll() {
   ["login", "dashboard", "patients", "collected", "detail", "cameraBox"].forEach(id => {
@@ -552,12 +471,6 @@ function hideAll() {
 }
 
 function logout() {
-  if (confirm("Logout from Health Space?")) {
-    localStorage.clear();
-    location.reload();
-  }
+  localStorage.clear();
+  location.reload();
 }
-</script>
-
-</body>
-</html>
