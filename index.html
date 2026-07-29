@@ -1,399 +1,160 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Health Space - Phlebo App</title>
-<style>
-  * { box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f9; color: #333; }
-  
-  /* LOGIN */
-  .login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
-  .login img { margin-bottom: 15px; border-radius: 12px; }
-  
-  input, button { width: 100%; max-width: 320px; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; }
-  button { background: #1976d2; color: #fff; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
-  button:active { background: #115293; }
-  button:disabled { background: #aaa; cursor: not-allowed; }
-  
-  /* HEADER & DASHBOARD */
-  .header { display: flex; align-items: center; padding: 12px 15px; background: #fff; border-bottom: 1px solid #ddd; }
-  .header img { width: 48px; height: 48px; border-radius: 50%; margin-right: 12px; object-fit: cover; }
-  
-  .menu-btn { margin: 12px; padding: 15px; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; text-align: center; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-  .total-box { background: #e3f2fd; color: #0d47a1; border-color: #bbdefb; }
-  
-  /* CARDS */
-  .card { background: #fff; border: 1px solid #e0e0e0; margin: 10px 15px; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; }
-  .card-actions { margin-top: 10px; display: flex; gap: 15px; }
-  .card-actions a { text-decoration: none; font-size: 20px; padding: 5px 10px; background: #f0f0f0; border-radius: 6px; }
-  
-  video { width: 100%; max-width: 400px; border-radius: 10px; background: #000; }
-  .back-btn { margin: 10px 15px; width: auto; padding: 8px 16px; background: #666; }
-  .loader { display: none; text-align: center; padding: 10px; font-weight: bold; color: #1976d2; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Space - Phlebo Field App</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; margin: 0; padding: 15px; }
+    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #2196F3; }
+    .locked { opacity: 0.5; pointer-events: none; border-left-color: #9e9e9e; }
+    .status-badge { display: inline-block; padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+    .paid { background: #e8f5e9; color: #2e7d32; }
+    .due { background: #ffebee; color: #c62828; }
+    .btn { background: #2196F3; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; font-size: 14px; }
+    .btn-danger { background: #f44336; }
+    .btn-success { background: #4CAF50; }
+    .qr-box { text-align: center; margin: 10px 0; display: none; }
+    .qr-box img { width: 180px; height: 180px; }
+    input, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .lock-msg { color: #d32f2f; font-weight: bold; font-size: 13px; margin-top: 5px; }
+  </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="login" class="login">
-  <img src="logo.png" width="90" alt="Logo" onerror="this.style.display='none'">
-  <h2>Health Space</h2>
-  <input id="mobile" type="tel" placeholder="Mobile Number">
-  <input id="password" type="password" placeholder="Password (12345)">
-  <button onclick="startCamera()">Login</button>
-</div>
+  <h2>📋 Health Space Field Visits</h2>
+  <div id="patient-list">लोड होत आहे...</div>
 
-<!-- CAMERA -->
-<div id="cameraBox" style="display:none; text-align:center; padding: 20px;">
-  <h3>Take Selfie Attendance</h3>
-  <video id="video" autoplay playsinline></video><br>
-  <button onclick="capturePhoto()">📸 Capture & Continue</button>
-</div>
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec"; // तुमची Apps Script URL टाकणे
+    const UPI_ID = "healthspace@ybl";
 
-<canvas id="canvas" style="display:none"></canvas>
+    async function fetchPatients() {
+      const res = await fetch(SCRIPT_URL + "?mobile=all");
+      const data = await res.json();
+      
+      // वेळेनुसार शॉटिंग करणे (Time Slot Sequence)
+      data.sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
 
-<!-- DASHBOARD -->
-<div id="dashboard" style="display:none">
-  <div class="header">
-    <img id="userPhoto" alt="User">
-    <div>
-      <b id="userName">Phlebotomist</b><br>
-      <small>Health Space Staff</small>
-    </div>
-  </div>
+      const container = document.getElementById('patient-list');
+      container.innerHTML = '';
 
-  <div class="menu-btn total-box">💰 Total Collected: ₹<span id="total">0</span></div>
-  <div class="menu-btn" onclick="openPatients()">📋 Pending Patients</div>
-  <div class="menu-btn" onclick="openCollected()">✅ Collected Patients</div>
-  <div class="menu-btn" style="color: #d32f2f;" onclick="logout()">🚪 Logout</div>
-</div>
+      let previousDone = true; // पहिला पेशंट अनलॉक असेल
 
-<!-- PATIENTS LIST -->
-<div id="patients" style="display:none">
-  <button class="back-btn" onclick="goDash()">⬅ Back</button>
-  <h3 style="text-align:center">Pending Patients</h3>
-  <div id="loader" class="loader">Loading data...</div>
-  <div id="list"></div>
-</div>
+      data.forEach((p, index) => {
+        const isPaid = p.paymentStatus === "Yes";
+        const isDone = p.status === "Collected" || p.status === "Rescheduled";
+        const isLocked = !previousDone;
 
-<!-- COLLECTED LIST -->
-<div id="collected" style="display:none">
-  <button class="back-btn" onclick="goDash()">⬅ Back</button>
-  <h3 style="text-align:center">Collected Patients</h3>
-  <div id="collectedList"></div>
-</div>
+        let html = `
+          <div class="card ${isLocked ? 'locked' : ''}">
+            <h3>${p.patientName} (${p.timeSlot})</h3>
+            <p><strong>पत्ता:</strong> ${p.address}</p>
+            <p><strong>चाचण्या:</strong> ${p.tests}</p>
+            <p><strong>रक्कम:</strong> ₹${p.amount} 
+              <span class="status-badge ${isPaid ? 'paid' : 'due'}">${isPaid ? 'PAID' : 'DUE'}</span>
+            </p>
+            
+            ${isLocked ? '<div class="lock-msg">🔒 आधीचा पेशंट पूर्ण झाल्याशिवाय हे अनलॉक होणार नाही.</div>' : ''}
 
-<!-- DETAIL VIEW -->
-<div id="detail" style="display:none; padding: 15px;">
-  <button class="back-btn" style="margin:0 0 15px 0;" onclick="backPatients()">⬅ Back</button>
+            <!-- 1. पेमेंट सेक्‍शन -->
+            ${!isPaid && !isLocked ? `
+              <hr>
+              <button class="btn" onclick="showQR('${p.amount}', 'qr-${index}')">📲 Online UPI QR दाखवा</button>
+              <div id="qr-${index}" class="qr-box">
+                <p>स्कॅन करून ₹${p.amount} भरा:</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${UPI_ID}%26pn=HealthSpace%26am=${p.amount}%26cu=INR" alt="QR">
+                <button class="btn btn-success" onclick="markPaid(${p.row})">कन्फर्म पेमेंट (Payment Done)</button>
+              </div>
+              <button class="btn btn-success" style="margin-top:5px;" onclick="markPaid(${p.row})">💵 Cash Received</button>
+            ` : ''}
 
-  <div id="detailBox" class="card" style="margin: 0 0 15px 0;"></div>
+            <!-- 2. सॅम्पल फोटो अपलोड (फक्त Paid असल्‍यावरच) -->
+            ${isPaid && !isDone && !isLocked ? `
+              <hr>
+              <label><strong>Tube Photo अपलोड करा:</strong></label>
+              <input type="file" id="file-${p.row}" accept="image/*">
+              <button class="btn btn-success" onclick="uploadPhoto(${p.row})">Upload Photo & Complete</button>
+            ` : ''}
 
-  <div style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ddd;">
-    <h4>1. Payment Status</h4>
-    <input id="pay" type="number" placeholder="Enter Collected Amount">
-    <button id="payBtn" onclick="payNow()">Submit Payment</button>
+            <!-- 3. सॅम्पल Not Collected / Reschedule -->
+            ${!isDone && !isLocked ? `
+              <hr>
+              <button class="btn btn-danger" onclick="toggleReschedule('res-${index}')">❌ Sample Not Collected</button>
+              <div id="res-${index}" style="display:none; margin-top:10px;">
+                <input type="text" id="reason-${p.row}" placeholder="न घेण्याचे कारण (उदा. Patient Unavailable)">
+                <label>नवी तारीख:</label>
+                <input type="date" id="date-${p.row}">
+                <label>नवी वेळ:</label>
+                <input type="time" id="time-${p.row}">
+                <button class="btn btn-danger" onclick="submitReschedule(${p.row})">Submit & Reschedule</button>
+              </div>
+            ` : ''}
 
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+            ${isDone ? `<div style="color:green; font-weight:bold; margin-top:10px;">✅ Status: ${p.status}</div>` : ''}
+          </div>
+        `;
 
-    <h4>2. Upload Tubes Photo</h4>
-    <input type="file" id="photo" accept="image/*" capture="environment">
-    <button id="uploadBtn" onclick="uploadPhoto()">Upload Photo & Complete</button>
-  </div>
-</div>
+        container.innerHTML += html;
 
-<script>
-const API = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
-
-let patients = [];
-let collected = [];
-let currentRowIndex = null;
-let paymentDone = false;
-
-// AUTO LOGIN
-window.onload = function() {
-  let t = localStorage.getItem("loginTime");
-  let m = localStorage.getItem("mobile");
-
-  if (t && m && (Date.now() - t) < 12 * 60 * 60 * 1000) {
-    showDashboard();
-    fetchData();
-  }
-};
-
-function startCamera() {
-  let m = document.getElementById("mobile").value;
-  let p = document.getElementById("password").value;
-
-  if (!m) { alert("Please enter mobile number"); return; }
-  if (p !== "12345") { alert("Wrong password"); return; }
-
-  localStorage.setItem("mobile", m);
-
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      hideAll();
-      document.getElementById("cameraBox").style.display = "block";
-      document.getElementById("video").srcObject = stream;
-    })
-    .catch(err => {
-      alert("Camera access denied or not available. Continuing login...");
-      loginSuccess();
-    });
-}
-
-function capturePhoto() {
-  let v = document.getElementById("video");
-  let c = document.getElementById("canvas");
-
-  c.width = v.videoWidth || 300;
-  c.height = v.videoHeight || 300;
-  c.getContext("2d").drawImage(v, 0, 0);
-
-  localStorage.setItem("photo", c.toDataURL("image/jpeg", 0.6));
-
-  if (v.srcObject) {
-    v.srcObject.getTracks().forEach(track => track.stop());
-  }
-
-  loginSuccess();
-}
-
-function loginSuccess() {
-  localStorage.setItem("loginTime", Date.now());
-  showDashboard();
-  fetchData();
-}
-
-function showDashboard() {
-  hideAll();
-  document.getElementById("dashboard").style.display = "block";
-  document.getElementById("userName").innerText = localStorage.getItem("name") || "Phlebotomist";
-  document.getElementById("userPhoto").src = localStorage.getItem("photo") || "https://via.placeholder.com/50";
-}
-
-// FETCH DATA
-function fetchData() {
-  let m = localStorage.getItem("mobile");
-  document.getElementById("loader").style.display = "block";
-
-  fetch(API + "?mobile=" + encodeURIComponent(m))
-    .then(r => r.json())
-    .then(data => {
-      document.getElementById("loader").style.display = "none";
-      patients = [];
-      collected = [];
-
-      data.forEach(obj => {
-        let status = String(obj.data[10]).trim(); // Col K (Index 10)
-        if (status.toLowerCase() === "collected") {
-          collected.push(obj);
-        } else {
-          patients.push(obj);
+        // जर हा पेशंट कम्प्लीट झाला नसेल, तर पुढचे सर्व पेशंट्स ब्लॉक होतील
+        if (!isDone) {
+          previousDone = false;
         }
       });
-
-      if (patients.length && patients[0].data[6]) {
-        localStorage.setItem("name", patients[0].data[6]);
-        document.getElementById("userName").innerText = patients[0].data[6];
-      }
-
-      render();
-      renderCollected();
-      updateTotal();
-    })
-    .catch(err => {
-      document.getElementById("loader").style.display = "none";
-      console.error("Error fetching data:", err);
-    });
-}
-
-// RENDER PENDING PATIENTS
-function render() {
-  let html = "";
-  if (patients.length === 0) {
-    html = "<p style='text-align:center;'>No pending patients assigned.</p>";
-  } else {
-    patients.forEach((p, i) => {
-      let r = p.data;
-      html += `
-      <div class="card" onclick="openDetail(${i})">
-        <b>👤 ${r[3] || 'N/A'}</b><br>
-        ⌚ Time: ${formatTime(r[2])}<br>
-        🧪 Test: ${r[7] || 'N/A'}<br>
-        💰 Amount: ₹${r[8] || 0}<br>
-        📍 Address: ${r[5] || 'N/A'}<br>
-        <div class="card-actions">
-          <a href="tel:${r[4]}" onclick="event.stopPropagation()">📞 Call</a>
-          <a href="https://maps.google.com?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">📍 Map</a>
-        </div>
-      </div>`;
-    });
-  }
-  document.getElementById("list").innerHTML = html;
-}
-
-// DETAIL VIEW
-function openDetail(i) {
-  currentRowIndex = i;
-  paymentDone = (patients[i].data[12] === "Yes"); // Col M check
-  let r = patients[i].data;
-
-  hideAll();
-  document.getElementById("detail").style.display = "block";
-  document.getElementById("pay").value = r[8] || "";
-
-  document.getElementById("detailBox").innerHTML = `
-    <b>👤 Patient Name: ${r[3]}</b><br><br>
-    🧪 <b>Test:</b> ${r[7]}<br>
-    📍 <b>Address:</b> ${r[5]}<br>
-    📞 <b>Phone:</b> ${r[4]}<br>
-    💰 <b>Bill Amount:</b> ₹${r[8]}
-  `;
-}
-
-// SUBMIT PAYMENT
-function payNow() {
-  let amt = Number(document.getElementById("pay").value);
-  let expectedAmt = Number(patients[currentRowIndex].data[8]);
-
-  if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
-  
-  let btn = document.getElementById("payBtn");
-  btn.disabled = true;
-  btn.innerText = "Submitting...";
-
-  fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      action: "payment",
-      row: patients[currentRowIndex].row
-    })
-  })
-  .then(r => r.json())
-  .then(res => {
-    btn.disabled = false;
-    btn.innerText = "Submit Payment";
-    if (res.result === "success") {
-      paymentDone = true;
-      alert("✅ Payment recorded successfully! Now upload tube photo.");
-    } else {
-      alert("Error: " + res.message);
     }
-  })
-  .catch(err => {
-    btn.disabled = false;
-    btn.innerText = "Submit Payment";
-    alert("Network Error!");
-  });
-}
 
-// UPLOAD PHOTO
-function uploadPhoto() {
-  let fileInput = document.getElementById("photo");
-  let file = fileInput.files[0];
+    function showQR(amount, elementId) {
+      document.getElementById(elementId).style.display = 'block';
+    }
 
-  if (!file) { alert("Please select or capture a photo first!"); return; }
+    function toggleReschedule(id) {
+      const el = document.getElementById(id);
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
 
-  let btn = document.getElementById("uploadBtn");
-  btn.disabled = true;
-  btn.innerText = "Uploading Photo...";
+    async function markPaid(row) {
+      if(!confirm("पेमेंट जमा झाले आहे याची खात्री आहे का?")) return;
+      await fetch(`${SCRIPT_URL}?action=payment&row=${row}`, { method: 'POST' });
+      alert("पेमेंट अपडेट झाले!");
+      fetchPatients();
+    }
 
-  let reader = new FileReader();
-  reader.onload = function() {
-    let base64 = reader.result.split(",")[1];
+    async function uploadPhoto(row) {
+      const fileInput = document.getElementById(`file-${row}`);
+      if (!fileInput.files[0]) return alert("कृपया फोटो निवडा!");
 
-    fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        action: "upload",
-        row: patients[currentRowIndex].row,
-        file: base64
-      })
-    })
-    .then(r => r.json())
-    .then(res => {
-      btn.disabled = false;
-      btn.innerText = "Upload Photo & Complete";
+      const reader = new FileReader();
+      reader.onload = async function () {
+        const base64 = reader.result.split(',')[1];
+        const formData = new URLSearchParams();
+        formData.append("file", base64);
 
-      if (res.result === "success") {
-        alert("🎉 Sample collected & photo saved to Drive!");
-        fileInput.value = "";
-        fetchData();
-        openCollected();
-      } else {
-        alert("Upload failed: " + res.message);
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Upload Photo & Complete";
-      alert("Error uploading file to server.");
-    });
-  };
+        await fetch(`${SCRIPT_URL}?action=upload&row=${row}`, {
+          method: 'POST',
+          body: formData
+        });
+        alert("सॅम्पल यशस्वीरीत्या सबमिट झाले!");
+        fetchPatients();
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    }
 
-  reader.readAsDataURL(file);
-}
+    async function submitReschedule(row) {
+      const reason = document.getElementById(`reason-${row}`).value;
+      const newDate = document.getElementById(`date-${row}`).value;
+      const newTime = document.getElementById(`time-${row}`).value;
 
-// COLLECTED TAB
-function renderCollected() {
-  let html = "";
-  if (collected.length === 0) {
-    html = "<p style='text-align:center;'>No collected records yet.</p>";
-  } else {
-    collected.forEach(p => {
-      let r = p.data;
-      html += `
-      <div class="card">
-        <b>👤 ${r[3]}</b><br>
-        🧪 ${r[7]}<br>
-        💰 Collected: ₹${r[8]}<br>
-        ${r[11] ? `<a href="${r[11]}" target="_blank">📷 View Tubes Photo</a>` : ''}
-      </div>`;
-    });
-  }
-  document.getElementById("collectedList").innerHTML = html;
-}
+      if (!reason || !newDate || !newTime) return alert("कृपया संपूर्ण माहिती भरा!");
 
-function updateTotal() {
-  let total = 0;
-  collected.forEach(p => total += Number(p.data[8] || 0));
-  document.getElementById("total").innerText = total;
-}
+      await fetch(`${SCRIPT_URL}?action=reschedule&row=${row}&reason=${encodeURIComponent(reason)}&newDate=${newDate}&newTime=${newTime}`, {
+        method: 'POST'
+      });
+      alert("पेशंट री-शेड्युल करण्यात आला आहे!");
+      fetchPatients();
+    }
 
-// TIME FORMATTER
-function formatTime(val) {
-  if (!val) return "N/A";
-  let d = new Date(val);
-  if (!isNaN(d.getTime())) {
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-  }
-  return val;
-}
-
-// NAVIGATION
-function openPatients() { hideAll(); document.getElementById("patients").style.display = "block"; }
-function openCollected() { hideAll(); document.getElementById("collected").style.display = "block"; }
-function goDash() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
-function backPatients() { openPatients(); }
-
-function hideAll() {
-  ["login", "dashboard", "patients", "collected", "detail", "cameraBox"].forEach(id => {
-    let el = document.getElementById(id);
-    if (el) el.style.display = "none";
-  });
-}
-
-function logout() {
-  localStorage.clear();
-  location.reload();
-}
-</script>
-
+    fetchPatients();
+  </script>
 </body>
 </html>
