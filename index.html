@@ -279,31 +279,39 @@ alert("Now upload photo");
 }
 
 // PHOTO
+// PHOTO Upload Function मпада currentRow नीट पास होतोय का पहा
 function uploadPhoto(){
+  if(!paymentDone){ alert("Pay first"); return; }
 
-if(!paymentDone){alert("Pay first");return;}
+  let file = document.getElementById("photo").files[0];
+  if(!file){ alert("Please select photo"); return; }
 
-let file=document.getElementById("photo").files[0];
-let reader=new FileReader();
+  let reader = new FileReader();
 
-reader.onload=function(){
+  reader.onload = function(){
+    let base64 = reader.result.split(",")[1];
 
-let base64=reader.result.split(",")[1];
+    // इथे currentRow व्यवस्थित भेटतोय ना हे कन्फर्म करा
+    fetch(API, {
+      method: "POST",
+      body: new URLSearchParams({
+        action: "upload",
+        row: patients[currentRow].row, // हा Google Sheet मधील Row Number आहे
+        file: base64
+      })
+    })
+    .then(r => r.text())
+    .then(res => {
+      alert("Photo Uploaded Successfully!");
+      fetchData();
+      backPatients();
+    })
+    .catch(err => {
+      alert("Error: " + err);
+    });
+  };
 
-fetch(API,{
-method:"POST",
-body:new URLSearchParams({
-action:"upload",
-row:patients[currentRow].row,
-file:base64
-})
-}).then(()=>{
-fetchData();
-backPatients();
-});
-};
-
-reader.readAsDataURL(file);
+  reader.readAsDataURL(file);
 }
 
 // COLLECTED
