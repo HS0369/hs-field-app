@@ -1,18 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="mr">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Space - Phlebo App</title>
 <style>
-body{font-family:Arial;margin:0;background:#fff;}
-.login{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;}
-input,button{width:90%;padding:12px;margin-top:10px;border-radius:8px;border:1px solid #ccc;}
-button{background:#1976d2;color:#fff;font-weight:bold;}
-.header{display:flex;align-items:center;padding:10px;border-bottom:1px solid #ddd;}
-.header img{width:50px;height:50px;border-radius:50%;margin-right:10px;}
-.menu{margin:10px;padding:15px;border:1px solid #ddd;border-radius:10px;text-align:center;font-weight:bold;}
-.card{border:1px solid #eee;margin:10px;padding:10px;border-radius:8px;}
-video{width:100%;max-height:200px;}
-.back{margin:10px;}
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f9; color: #333; }
+  
+  /* LOGIN */
+  .login { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
+  .login img { margin-bottom: 15px; border-radius: 12px; }
+  
+  input, button { width: 100%; max-width: 320px; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; }
+  button { background: #1976d2; color: #fff; font-weight: bold; border: none; cursor: pointer; transition: 0.2s; }
+  button:active { background: #115293; }
+  button:disabled { background: #aaa; cursor: not-allowed; }
+  
+  /* HEADER & DASHBOARD */
+  .header { display: flex; align-items: center; padding: 12px 15px; background: #fff; border-bottom: 1px solid #ddd; }
+  .header img { width: 48px; height: 48px; border-radius: 50%; margin-right: 12px; object-fit: cover; }
+  
+  .menu-btn { margin: 12px; padding: 15px; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; text-align: center; font-weight: bold; font-size: 16px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  .total-box { background: #e3f2fd; color: #0d47a1; border-color: #bbdefb; }
+  
+  /* CARDS */
+  .card { background: #fff; border: 1px solid #e0e0e0; margin: 10px 15px; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); position: relative; }
+  .card-actions { margin-top: 10px; display: flex; gap: 15px; }
+  .card-actions a { text-decoration: none; font-size: 20px; padding: 5px 10px; background: #f0f0f0; border-radius: 6px; }
+  
+  video { width: 100%; max-width: 400px; border-radius: 10px; background: #000; }
+  .back-btn { margin: 10px 15px; width: auto; padding: 8px 16px; background: #666; }
+  .loader { display: none; text-align: center; padding: 10px; font-weight: bold; color: #1976d2; }
 </style>
 </head>
 
@@ -20,17 +39,16 @@ video{width:100%;max-height:200px;}
 
 <!-- LOGIN -->
 <div id="login" class="login">
-  <img src="logo.png" width="90">
-  <b>Health Space</b>
-
-  <input id="mobile" placeholder="Mobile">
-  <input id="password" type="password" placeholder="Password">
-
+  <img src="logo.png" width="90" alt="Logo" onerror="this.style.display='none'">
+  <h2>Health Space</h2>
+  <input id="mobile" type="tel" placeholder="Mobile Number">
+  <input id="password" type="password" placeholder="Password (12345)">
   <button onclick="startCamera()">Login</button>
 </div>
 
 <!-- CAMERA -->
-<div id="cameraBox" style="display:none;text-align:center">
+<div id="cameraBox" style="display:none; text-align:center; padding: 20px;">
+  <h3>Take Selfie Attendance</h3>
   <video id="video" autoplay playsinline></video><br>
   <button onclick="capturePhoto()">📸 Capture & Continue</button>
 </div>
@@ -40,317 +58,341 @@ video{width:100%;max-height:200px;}
 <!-- DASHBOARD -->
 <div id="dashboard" style="display:none">
   <div class="header">
-    <img id="userPhoto">
+    <img id="userPhoto" alt="User">
     <div>
-      <b id="userName"></b><br>
-      <small>Phlebotomist</small>
+      <b id="userName">Phlebotomist</b><br>
+      <small>Health Space Staff</small>
     </div>
   </div>
 
-  <div class="menu">💰 Total ₹<span id="total">0</span></div>
-
-  <div class="menu" onclick="openPatients()">Patients</div>
-  <div class="menu" onclick="openCollected()">Collected</div>
-  <div class="menu" onclick="logout()">Logout</div>
+  <div class="menu-btn total-box">💰 Total Collected: ₹<span id="total">0</span></div>
+  <div class="menu-btn" onclick="openPatients()">📋 Pending Patients</div>
+  <div class="menu-btn" onclick="openCollected()">✅ Collected Patients</div>
+  <div class="menu-btn" style="color: #d32f2f;" onclick="logout()">🚪 Logout</div>
 </div>
 
-<!-- PATIENTS -->
+<!-- PATIENTS LIST -->
 <div id="patients" style="display:none">
-  <button class="back" onclick="goDash()">⬅ Back</button>
-  <h3 style="text-align:center">Patients</h3>
+  <button class="back-btn" onclick="goDash()">⬅ Back</button>
+  <h3 style="text-align:center">Pending Patients</h3>
+  <div id="loader" class="loader">Loading data...</div>
   <div id="list"></div>
 </div>
 
-<!-- COLLECTED -->
+<!-- COLLECTED LIST -->
 <div id="collected" style="display:none">
-  <button class="back" onclick="goDash()">⬅ Back</button>
-  <h3 style="text-align:center">Collected</h3>
+  <button class="back-btn" onclick="goDash()">⬅ Back</button>
+  <h3 style="text-align:center">Collected Patients</h3>
   <div id="collectedList"></div>
 </div>
 
-<!-- DETAIL -->
-<div id="detail" style="display:none">
-  <button class="back" onclick="backPatients()">⬅ Back</button>
+<!-- DETAIL VIEW -->
+<div id="detail" style="display:none; padding: 15px;">
+  <button class="back-btn" style="margin:0 0 15px 0;" onclick="backPatients()">⬅ Back</button>
 
-  <div id="detailBox"></div>
+  <div id="detailBox" class="card" style="margin: 0 0 15px 0;"></div>
 
-  <input id="pay" placeholder="Enter Amount">
-  <button onclick="payNow()">Submit Payment</button>
+  <div style="background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ddd;">
+    <h4>1. Payment Status</h4>
+    <input id="pay" type="number" placeholder="Enter Collected Amount">
+    <button id="payBtn" onclick="payNow()">Submit Payment</button>
 
-  <input type="file" id="photo" accept="image/*" capture="environment">
-  <button onclick="uploadPhoto()">Upload Tubes Photo</button>
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+    <h4>2. Upload Tubes Photo</h4>
+    <input type="file" id="photo" accept="image/*" capture="environment">
+    <button id="uploadBtn" onclick="uploadPhoto()">Upload Photo & Complete</button>
+  </div>
 </div>
 
 <script>
+const API = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
-const API="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
-
-let patients=[];
-let collected=[];
-let currentRow=null;
-let paymentDone=false;
+let patients = [];
+let collected = [];
+let currentRowIndex = null;
+let paymentDone = false;
 
 // AUTO LOGIN
-window.onload=function(){
-let t=localStorage.getItem("loginTime");
-let m=localStorage.getItem("mobile");
+window.onload = function() {
+  let t = localStorage.getItem("loginTime");
+  let m = localStorage.getItem("mobile");
 
-if(t && m && (Date.now()-t)<12*60*60*1000){
-document.getElementById("login").style.display="none";
-document.getElementById("dashboard").style.display="block";
-document.getElementById("userName").innerText=localStorage.getItem("name");
-document.getElementById("userPhoto").src=localStorage.getItem("photo");
-fetchData();
-}
+  if (t && m && (Date.now() - t) < 12 * 60 * 60 * 1000) {
+    showDashboard();
+    fetchData();
+  }
 };
 
-// CAMERA
-function startCamera(){
-navigator.mediaDevices.getUserMedia({video:true})
-.then(stream=>{
-document.getElementById("login").style.display="none";
-document.getElementById("cameraBox").style.display="block";
-document.getElementById("video").srcObject=stream;
-});
+function startCamera() {
+  let m = document.getElementById("mobile").value;
+  let p = document.getElementById("password").value;
+
+  if (!m) { alert("Please enter mobile number"); return; }
+  if (p !== "12345") { alert("Wrong password"); return; }
+
+  localStorage.setItem("mobile", m);
+
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      hideAll();
+      document.getElementById("cameraBox").style.display = "block";
+      document.getElementById("video").srcObject = stream;
+    })
+    .catch(err => {
+      alert("Camera access denied or not available. Continuing login...");
+      loginSuccess();
+    });
 }
 
-// CAPTURE → FIXED FLOW
-function capturePhoto(){
-let v=document.getElementById("video");
-let c=document.getElementById("canvas");
+function capturePhoto() {
+  let v = document.getElementById("video");
+  let c = document.getElementById("canvas");
 
-c.width=v.videoWidth;
-c.height=v.videoHeight;
-c.getContext("2d").drawImage(v,0,0);
+  c.width = v.videoWidth || 300;
+  c.height = v.videoHeight || 300;
+  c.getContext("2d").drawImage(v, 0, 0);
 
-localStorage.setItem("photo",c.toDataURL("image/jpeg",0.6));
+  localStorage.setItem("photo", c.toDataURL("image/jpeg", 0.6));
 
-// stop camera (important ⚡)
-let stream=v.srcObject;
-stream.getTracks().forEach(track=>track.stop());
+  if (v.srcObject) {
+    v.srcObject.getTracks().forEach(track => track.stop());
+  }
 
-login(); // direct call
+  loginSuccess();
 }
 
-// LOGIN
-function login(){
-
-let m=document.getElementById("mobile").value;
-let p=document.getElementById("password").value;
-
-if(p!="12345"){alert("Wrong password");return;}
-
-localStorage.setItem("mobile",m);
-localStorage.setItem("loginTime",Date.now());
-
-fetchData();
-
-document.getElementById("cameraBox").style.display="none";
-document.getElementById("dashboard").style.display="block";
+function loginSuccess() {
+  localStorage.setItem("loginTime", Date.now());
+  showDashboard();
+  fetchData();
 }
 
-// FETCH (OPTIMIZED ⚡)
-function fetchData(){
-
-let m=localStorage.getItem("mobile");
-
-fetch(API+"?mobile="+m)
-.then(r=>r.json())
-.then(data=>{
-
-patients=[];
-collected=[];
-
-data.forEach(obj=>{
-let r=obj.data;
-
-if(r[10]=="Collected"){
-collected.push(obj);
-}else{
-patients.push(obj);
-}
-});
-
-// name fix
-if(patients.length){
-localStorage.setItem("name",patients[0].data[6]);
-document.getElementById("userName").innerText=patients[0].data[6];
+function showDashboard() {
+  hideAll();
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("userName").innerText = localStorage.getItem("name") || "Phlebotomist";
+  document.getElementById("userPhoto").src = localStorage.getItem("photo") || "https://via.placeholder.com/50";
 }
 
-document.getElementById("userPhoto").src=localStorage.getItem("photo");
+// FETCH DATA
+function fetchData() {
+  let m = localStorage.getItem("mobile");
+  document.getElementById("loader").style.display = "block";
 
-render();
-renderCollected();
-updateTotal();
+  fetch(API + "?mobile=" + encodeURIComponent(m))
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById("loader").style.display = "none";
+      patients = [];
+      collected = [];
 
-});
+      data.forEach(obj => {
+        let status = String(obj.data[10]).trim(); // Col K (Index 10)
+        if (status.toLowerCase() === "collected") {
+          collected.push(obj);
+        } else {
+          patients.push(obj);
+        }
+      });
+
+      if (patients.length && patients[0].data[6]) {
+        localStorage.setItem("name", patients[0].data[6]);
+        document.getElementById("userName").innerText = patients[0].data[6];
+      }
+
+      render();
+      renderCollected();
+      updateTotal();
+    })
+    .catch(err => {
+      document.getElementById("loader").style.display = "none";
+      console.error("Error fetching data:", err);
+    });
 }
 
-// RENDER
-function render(){
-
-let html="";
-
-patients.forEach((p,i)=>{
-let r=p.data;
-
-html+=`
-<div class="card" onclick="openDetail(${i})">
-<b>${r[3]}</b><br>
-⌚ ${formatTime(r[2])}<br>
-🧪 ${r[7]}<br>
-₹${r[8]}<br>
-📍 ${r[5]}<br>
-
-<a href="tel:${r[4]}" onclick="event.stopPropagation()">📞</a>
-<a href="https://maps.google.com?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">📍</a>
-</div>`;
-});
-
-document.getElementById("list").innerHTML=html;
-}
-// Time
-function formatTime(val){
-
-if(!val) return "";
-
-// Case 1: Proper date string
-let d = new Date(val);
-
-if(!isNaN(d)){
-  let h = d.getHours();
-  let m = d.getMinutes();
-
-  let ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  m = m < 10 ? "0"+m : m;
-
-  return h + ":" + m + " " + ampm;
+// RENDER PENDING PATIENTS
+function render() {
+  let html = "";
+  if (patients.length === 0) {
+    html = "<p style='text-align:center;'>No pending patients assigned.</p>";
+  } else {
+    patients.forEach((p, i) => {
+      let r = p.data;
+      html += `
+      <div class="card" onclick="openDetail(${i})">
+        <b>👤 ${r[3] || 'N/A'}</b><br>
+        ⌚ Time: ${formatTime(r[2])}<br>
+        🧪 Test: ${r[7] || 'N/A'}<br>
+        💰 Amount: ₹${r[8] || 0}<br>
+        📍 Address: ${r[5] || 'N/A'}<br>
+        <div class="card-actions">
+          <a href="tel:${r[4]}" onclick="event.stopPropagation()">📞 Call</a>
+          <a href="https://maps.google.com?q=${encodeURIComponent(r[5])}" target="_blank" onclick="event.stopPropagation()">📍 Map</a>
+        </div>
+      </div>`;
+    });
+  }
+  document.getElementById("list").innerHTML = html;
 }
 
-// Case 2: Google Sheet time number (e.g. 0.5)
-if(!isNaN(val)){
-  let totalMinutes = Math.floor(val * 24 * 60);
-  let h = Math.floor(totalMinutes / 60);
-  let m = totalMinutes % 60;
+// DETAIL VIEW
+function openDetail(i) {
+  currentRowIndex = i;
+  paymentDone = (patients[i].data[12] === "Yes"); // Col M check
+  let r = patients[i].data;
 
-  let ampm = h >= 12 ? "PM" : "AM";
-  h = h % 12 || 12;
-  m = m < 10 ? "0"+m : m;
+  hideAll();
+  document.getElementById("detail").style.display = "block";
+  document.getElementById("pay").value = r[8] || "";
 
-  return h + ":" + m + " " + ampm;
+  document.getElementById("detailBox").innerHTML = `
+    <b>👤 Patient Name: ${r[3]}</b><br><br>
+    🧪 <b>Test:</b> ${r[7]}<br>
+    📍 <b>Address:</b> ${r[5]}<br>
+    📞 <b>Phone:</b> ${r[4]}<br>
+    💰 <b>Bill Amount:</b> ₹${r[8]}
+  `;
 }
 
-return val;
+// SUBMIT PAYMENT
+function payNow() {
+  let amt = Number(document.getElementById("pay").value);
+  let expectedAmt = Number(patients[currentRowIndex].data[8]);
+
+  if (!amt || amt <= 0) { alert("Please enter a valid amount"); return; }
+  
+  let btn = document.getElementById("payBtn");
+  btn.disabled = true;
+  btn.innerText = "Submitting...";
+
+  fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      action: "payment",
+      row: patients[currentRowIndex].row
+    })
+  })
+  .then(r => r.json())
+  .then(res => {
+    btn.disabled = false;
+    btn.innerText = "Submit Payment";
+    if (res.result === "success") {
+      paymentDone = true;
+      alert("✅ Payment recorded successfully! Now upload tube photo.");
+    } else {
+      alert("Error: " + res.message);
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerText = "Submit Payment";
+    alert("Network Error!");
+  });
 }
-// DETAIL
-function openDetail(i){
-currentRow=i;
-let r=patients[i].data;
 
-hide();
-document.getElementById("detail").style.display="block";
+// UPLOAD PHOTO
+function uploadPhoto() {
+  let fileInput = document.getElementById("photo");
+  let file = fileInput.files[0];
 
-document.getElementById("detailBox").innerHTML=`
-<b>${r[3]}</b><br>  
-🧪 ${r[7]}<br>
-📍 ${r[5]}<br>
-₹${r[8]}
-`;
-}
-// PAYMENT
-function payNow(){
-let amt=Number(document.getElementById("pay").value);
-let total=Number(patients[currentRow].data[8]);
+  if (!file) { alert("Please select or capture a photo first!"); return; }
 
-if(amt!==total){alert("Full payment required");return;}
-
-paymentDone=true;
-
-fetch(API,{
-method:"POST",
-body:new URLSearchParams({
-action:"payment",
-row:patients[currentRow].row
-})
-});
-
-alert("Now upload photo");
-}
-
-// PHOTO
-// PHOTO Upload Function मпада currentRow नीट पास होतोय का पहा
-function uploadPhoto(){
-  if(!paymentDone){ alert("Pay first"); return; }
-
-  let file = document.getElementById("photo").files[0];
-  if(!file){ alert("Please select photo"); return; }
+  let btn = document.getElementById("uploadBtn");
+  btn.disabled = true;
+  btn.innerText = "Uploading Photo...";
 
   let reader = new FileReader();
-
-  reader.onload = function(){
+  reader.onload = function() {
     let base64 = reader.result.split(",")[1];
 
-    // इथे currentRow व्यवस्थित भेटतोय ना हे कन्फर्म करा
     fetch(API, {
       method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         action: "upload",
-        row: patients[currentRow].row, // हा Google Sheet मधील Row Number आहे
+        row: patients[currentRowIndex].row,
         file: base64
       })
     })
-    .then(r => r.text())
+    .then(r => r.json())
     .then(res => {
-      alert("Photo Uploaded Successfully!");
-      fetchData();
-      backPatients();
+      btn.disabled = false;
+      btn.innerText = "Upload Photo & Complete";
+
+      if (res.result === "success") {
+        alert("🎉 Sample collected & photo saved to Drive!");
+        fileInput.value = "";
+        fetchData();
+        openCollected();
+      } else {
+        alert("Upload failed: " + res.message);
+      }
     })
     .catch(err => {
-      alert("Error: " + err);
+      btn.disabled = false;
+      btn.innerText = "Upload Photo & Complete";
+      alert("Error uploading file to server.");
     });
   };
 
   reader.readAsDataURL(file);
 }
 
-// COLLECTED
-function renderCollected(){
-let html="";
-
-collected.forEach(p=>{
-let r=p.data;
-
-html+=`
-<div class="card">
-<b>${r[3]}</b><br>
-🧪 ${r[7]}<br>
-₹${r[8]}
-</div>`;
-});
-
-document.getElementById("collectedList").innerHTML=html;
+// COLLECTED TAB
+function renderCollected() {
+  let html = "";
+  if (collected.length === 0) {
+    html = "<p style='text-align:center;'>No collected records yet.</p>";
+  } else {
+    collected.forEach(p => {
+      let r = p.data;
+      html += `
+      <div class="card">
+        <b>👤 ${r[3]}</b><br>
+        🧪 ${r[7]}<br>
+        💰 Collected: ₹${r[8]}<br>
+        ${r[11] ? `<a href="${r[11]}" target="_blank">📷 View Tubes Photo</a>` : ''}
+      </div>`;
+    });
+  }
+  document.getElementById("collectedList").innerHTML = html;
 }
 
-// TOTAL
-function updateTotal(){
-let t=0;
-collected.forEach(p=>t+=Number(p.data[8]||0));
-document.getElementById("total").innerText=t;
+function updateTotal() {
+  let total = 0;
+  collected.forEach(p => total += Number(p.data[8] || 0));
+  document.getElementById("total").innerText = total;
 }
 
-// NAV
-function openPatients(){hide();document.getElementById("patients").style.display="block";}
-function openCollected(){hide();document.getElementById("collected").style.display="block";}
-function goDash(){hide();document.getElementById("dashboard").style.display="block";}
-function backPatients(){hide();document.getElementById("patients").style.display="block";}
-function hide(){["dashboard","patients","collected","detail","cameraBox"].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display="none";});}
-
-function logout(){
-localStorage.clear();
-location.reload();
+// TIME FORMATTER
+function formatTime(val) {
+  if (!val) return "N/A";
+  let d = new Date(val);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  }
+  return val;
 }
 
+// NAVIGATION
+function openPatients() { hideAll(); document.getElementById("patients").style.display = "block"; }
+function openCollected() { hideAll(); document.getElementById("collected").style.display = "block"; }
+function goDash() { hideAll(); document.getElementById("dashboard").style.display = "block"; }
+function backPatients() { openPatients(); }
+
+function hideAll() {
+  ["login", "dashboard", "patients", "collected", "detail", "cameraBox"].forEach(id => {
+    let el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+}
+
+function logout() {
+  localStorage.clear();
+  location.reload();
+}
 </script>
 
 </body>
