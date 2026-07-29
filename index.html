@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Health Space - Phlebo Field App</title>
+  <title>Health Space - Phlebo Portal</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
@@ -17,458 +17,593 @@
       --text-main: #2c3e50;
       --text-muted: #7f8c8d;
       --danger: #e74c3c;
-      --warning: #f39c12;
       --success: #2ecc71;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
     body { background-color: var(--bg); color: var(--text-main); padding-bottom: 30px; }
 
+    /* VIEW MANAGEMENT */
     .view-section { display: none; }
     .view-section.active { display: block; }
 
-    /* Login UI */
-    .login-container {
-      max-width: 400px;
-      margin: 40px auto;
-      background: white;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    .login-logo { font-size: 45px; color: var(--primary); margin-bottom: 10px; }
-    .login-container h2 { margin-bottom: 5px; color: var(--primary-dark); }
-    .form-group { margin-bottom: 15px; text-align: left; }
-    .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-control {
+    /* BUTTONS */
+    .btn {
       width: 100%;
       padding: 12px;
-      margin-top: 5px;
-      border: 1px solid #ccd1d9;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:active { background: var(--primary-dark); }
+    .btn-success { background: var(--success); color: white; }
+    .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .back-btn {
+      background: #e2e8f0;
+      color: var(--text-main);
+      padding: 8px 16px;
       border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      margin: 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 1. LOGIN UI */
+    .login-container {
+      max-width: 380px;
+      margin: 50px auto;
+      background: white;
+      padding: 35px 25px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    .brand-logo {
+      width: 80px;
+      height: 80px;
+      background: #e0f2fe;
+      color: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px auto;
+      font-size: 38px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      margin-top: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
       font-size: 14px;
       outline: none;
     }
+    .form-control:focus { border-color: var(--primary); }
 
-    /* App Header */
-    .app-header {
-      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-      color: white;
-      padding: 15px;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .profile-row { display: flex; align-items: center; justify-content: space-between; }
-    .profile-info { display: flex; align-items: center; gap: 12px; }
-    .profile-avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid white; object-fit: cover; background: #ddd; }
-    .profile-name { font-size: 16px; font-weight: 600; }
-    .profile-role { font-size: 11px; opacity: 0.85; text-transform: uppercase; }
-
-    /* Dashboard Metrics */
-    .dash-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      padding: 15px;
-    }
-    .dash-card {
-      background: white;
-      padding: 12px;
-      border-radius: 12px;
+    /* CAMERA UI */
+    .camera-box {
       text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 30px 20px;
+      max-width: 400px;
+      margin: 0 auto;
     }
-    .dash-card .val { font-size: 18px; font-weight: 700; color: var(--primary); }
-    .dash-card .lbl { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; }
-
-    /* SOP Guidelines Box */
-    .sop-box {
-      background: #e1f5fe;
-      border-left: 4px solid var(--primary);
-      margin: 0 15px 15px 15px;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      color: var(--primary-dark);
-      line-height: 1.4;
-    }
-    .sop-box h4 { margin-bottom: 4px; font-size: 13px; font-weight: 700; }
-
-    /* Patient Cards */
-    .patient-container { padding: 0 15px; }
-    .patient-card {
-      background: white;
+    video {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
       border-radius: 15px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-      border-left: 5px solid var(--primary);
+      background: #000;
+      margin: 15px 0;
     }
-    .patient-card.locked { opacity: 0.6; border-left-color: #bdc3c7; background: #fafafa; }
-    .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-    .time-badge { background: #e3f2fd; color: var(--primary-dark); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-    
-    .p-details { font-size: 13px; color: #4a5568; margin-top: 5px; display: flex; align-items: center; gap: 8px; }
-    .p-details i { color: var(--primary); width: 14px; }
 
-    .badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
-    .badge-paid { background: #d4edda; color: #155724; }
-    .badge-due { background: #f8d7da; color: #721c24; }
-    .badge-done { background: #cce5ff; color: #004085; }
+    /* 2. DASHBOARD UI */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .user-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 15px;
+      border: 2px solid var(--primary);
+    }
 
-    .btn-row { display: flex; gap: 8px; margin-top: 12px; }
-    .btn { flex: 1; padding: 9px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-success { background: var(--success); color: white; }
-    .btn-danger { background: #fef2f2; color: var(--danger); border: 1px solid #fca5a5; }
+    .dash-menu { padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+    .menu-card {
+      background: white;
+      padding: 18px 20px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      cursor: pointer;
+      border: 1px solid #f1f5f9;
+      font-weight: 600;
+    }
+    .menu-card.total-box {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
 
-    /* Modals & Camera */
-    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
-    .modal-box { background: white; border-radius: 15px; padding: 20px; width: 100%; max-width: 340px; text-align: center; }
-    .modal-box input, .modal-box select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; }
-    .qr-img { width: 180px; height: 180px; margin: 10px 0; border: 1px solid #eee; padding: 5px; border-radius: 8px; }
+    /* 3. PATIENT CARDS */
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 16px;
+      margin: 12px 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+      border-left: 5px solid var(--primary);
+      position: relative;
+    }
+    .card-title { font-size: 16px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+    .card-info { font-size: 13px; color: #475569; margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+    .card-info i { color: var(--primary); width: 16px; }
 
-    #cameraModal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: black; z-index: 300; flex-direction: column; align-items: center; justify-content: center; color: white; }
-    #videoElement { width: 100%; max-width: 400px; height: auto; border-radius: 10px; }
+    .time-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #e0f2fe;
+      color: var(--primary-dark);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .card-actions { display: flex; gap: 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f5f9; }
+    .action-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      text-decoration: none;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      background: #f8fafc;
+      color: var(--text-main);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .loader { display: none; text-align: center; padding: 20px; font-weight: 600; color: var(--primary); }
   </style>
 </head>
+
 <body>
 
-  <!-- VIEW 1: LOGIN & SELFIE VERIFICATION -->
-  <div id="loginView" class="view-section active">
+  <!-- VIEW 1: LOGIN -->
+  <div id="login" class="view-section active">
     <div class="login-container">
-      <div class="login-logo"><i class="fa-solid fa-heart-pulse"></i></div>
-      <h2>HEALTH SPACE</h2>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Phlebo Field Partner Portal</p>
+      <div class="brand-logo">
+        <i class="fa-solid fa-heart-pulse"></i>
+      </div>
+      <h2 style="color: var(--primary-dark);">HEALTH SPACE</h2>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Phlebotomist Portal</p>
       
-      <div class="form-group">
-        <label>Phlebo Name</label>
-        <input type="text" id="loginName" class="form-control" placeholder="Enter Full Name">
-      </div>
-      <div class="form-group">
-        <label>Registered Mobile</label>
-        <input type="tel" id="loginMobile" class="form-control" placeholder="10-digit Mobile Number">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPass" class="form-control" placeholder="Enter Password">
-      </div>
-
-      <button class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 14px; margin-top: 10px;" onclick="startSelfieVerification()">
-        <i class="fa-solid fa-camera"></i> Verify with Selfie & Login
+      <input id="mobile" type="tel" class="form-control" placeholder="Mobile Number">
+      <input id="password" type="password" class="form-control" placeholder="Password (12345)">
+      
+      <button class="btn btn-primary" style="margin-top: 20px;" onclick="startCamera()">
+        <i class="fa-solid fa-right-to-bracket"></i> Login
       </button>
     </div>
   </div>
 
-  <!-- CAMERA POPUP -->
-  <div id="cameraModal">
-    <h3 style="margin-bottom: 10px;">Capture Verification Selfie</h3>
-    <video id="videoElement" autoplay playsinline></video>
-    <canvas id="canvasElement" style="display:none;"></canvas>
-    <div style="margin-top: 15px; display: flex; gap: 10px; width: 100%; max-width: 400px; padding: 0 10px;">
-      <button class="btn btn-success" onclick="captureSelfie()">Capture Photo</button>
-      <button class="btn btn-danger" onclick="closeCamera()">Cancel</button>
+  <!-- VIEW 2: CAMERA ATTENDANCE -->
+  <div id="cameraBox" class="view-section">
+    <div class="camera-box">
+      <h3>Selfie Attendance Verification</h3>
+      <p style="font-size: 12px; color: var(--text-muted);">Please capture your photo to continue</p>
+      <video id="video" autoplay playsinline></video>
+      <button class="btn btn-success" onclick="capturePhoto()">
+        <i class="fa-solid fa-camera"></i> Capture & Continue
+      </button>
     </div>
   </div>
 
-  <!-- VIEW 2: DASHBOARD -->
-  <div id="dashboardView" class="view-section">
-    <header class="app-header">
-      <div class="profile-row">
-        <div class="profile-info">
-          <img id="phleboAvatar" src="" class="profile-avatar" alt="Avatar">
-          <div>
-            <div class="profile-name" id="displayPhleboName">Executive</div>
-            <div class="profile-role">Field Phlebotomist</div>
-          </div>
+  <canvas id="canvas" style="display:none"></canvas>
+
+  <!-- VIEW 3: DASHBOARD -->
+  <div id="dashboard" class="view-section">
+    <div class="header">
+      <img id="userPhoto" class="user-avatar" src="https://via.placeholder.com/50" alt="User">
+      <div>
+        <div id="userName" style="font-size: 16px; font-weight: 700;">Phlebotomist</div>
+        <small style="color: var(--text-muted);">Field Executive</small>
+      </div>
+    </div>
+
+    <div class="dash-menu">
+      <div class="menu-card total-box">
+        <div>
+          <span style="font-size: 12px; opacity: 0.9;">TOTAL COLLECTED</span>
+          <div style="font-size: 22px; font-weight: 700;">₹<span id="total">0</span></div>
         </div>
-        <i class="fa-solid fa-right-from-bracket" onclick="logout()" style="cursor: pointer; font-size: 18px;" title="Logout"></i>
+        <i class="fa-solid fa-wallet" style="font-size: 28px; opacity: 0.8;"></i>
       </div>
-    </header>
 
-    <!-- Metrics -->
-    <div class="dash-grid">
-      <div class="dash-card">
-        <div class="val" id="stat-total">0</div>
-        <div class="lbl">Total Assigned</div>
+      <div class="menu-card" onclick="openPatients()">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary); font-size: 20px;"></i>
+          <span>Pending Patients</span>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="color: #cbd5e1;"></i>
       </div>
-      <div class="dash-card">
-        <div class="val" id="stat-collected" style="color: var(--success);">0</div>
-        <div class="lbl">Completed</div>
-      </div>
-      <div class="dash-card">
-        <div class="val" id="stat-pending" style="color: var(--warning);">0</div>
-        <div class="lbl">Pending</div>
-      </div>
-      <div class="dash-card">
-        <div class="val" id="stat-revenue" style="color: var(--secondary);">₹0</div>
-        <div class="lbl">Total Amount</div>
-      </div>
-    </div>
 
-    <!-- SOP Guidelines -->
-    <div class="sop-box">
-      <h4><i class="fa-solid fa-book-medical"></i> Sample Collection SOPs</h4>
-      <p>1. Verify patient identity and test requirements prior to venipuncture.<br>2. Ensure barcode labeling on all vacuum sample tubes.<br>3. Confirm payment completion before uploading tube proof.</p>
-    </div>
+      <div class="menu-card" onclick="openCollected()">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fa-solid fa-circle-check" style="color: var(--success); font-size: 20px;"></i>
+          <span>Collected Patients</span>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="color: #cbd5e1;"></i>
+      </div>
 
-    <!-- Patient List Container -->
-    <div class="patient-container" id="patientListContainer">
-      <p style="text-align: center; color: var(--text-muted); padding: 20px;">Loading assignments...</p>
+      <div class="menu-card" style="color: var(--danger);" onclick="logout()">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <i class="fa-solid fa-arrow-right-from-bracket" style="font-size: 20px;"></i>
+          <span>Logout</span>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- MODAL: UPI QR -->
-  <div class="modal" id="qrModal">
-    <div class="modal-box">
-      <h3><i class="fa-solid fa-qrcode" style="color: var(--primary);"></i> UPI QR Code</h3>
-      <p style="font-size: 12px; color: var(--text-muted);">healthspace@ybl</p>
-      <img id="qrImage" class="qr-img" src="" alt="QR">
-      <p style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">Amount: ₹<span id="qrAmount">0</span></p>
-      <button class="btn btn-success" id="confirmPaymentBtn" style="width: 100%;">Payment Received</button>
-      <button class="btn btn-danger" onclick="closeModal('qrModal')" style="width: 100%; margin-top: 8px; background: transparent; color: var(--text-muted);">Close</button>
-    </div>
+  <!-- VIEW 4: PENDING PATIENTS LIST -->
+  <div id="patients" class="view-section">
+    <button class="back-btn" onclick="goDash()"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
+    <h3 style="padding: 0 15px; font-size: 18px;">Pending Assignments</h3>
+    <div id="loader" class="loader"><i class="fa-solid fa-spinner fa-spin"></i> Loading Data...</div>
+    <div id="list"></div>
   </div>
 
-  <!-- MODAL: RESCHEDULE -->
-  <div class="modal" id="rescheduleModal">
-    <div class="modal-box">
-      <h3 style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Mark Not Collected</h3>
-      <input type="text" id="resReason" placeholder="Enter reason (e.g., Patient not available)">
-      <label style="font-size: 11px; font-weight: 600; display:block; text-align:left; margin-top:5px;">Reschedule Date:</label>
-      <input type="date" id="resDate">
-      <label style="font-size: 11px; font-weight: 600; display:block; text-align:left; margin-top:5px;">Reschedule Time:</label>
-      <input type="time" id="resTime">
-      <button class="btn btn-danger" id="submitRescheduleBtn" style="width: 100%; margin-top: 10px;">Submit & Reschedule</button>
-      <button class="btn" onclick="closeModal('rescheduleModal')" style="width: 100%; margin-top: 5px; background: transparent; color: var(--text-muted);">Cancel</button>
+  <!-- VIEW 5: COLLECTED PATIENTS LIST -->
+  <div id="collected" class="view-section">
+    <button class="back-btn" onclick="goDash()"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
+    <h3 style="padding: 0 15px; font-size: 18px;">Completed Collections</h3>
+    <div id="collectedList"></div>
+  </div>
+
+  <!-- VIEW 6: PATIENT DETAIL VIEW -->
+  <div id="detail" class="view-section">
+    <button class="back-btn" onclick="backPatients()"><i class="fa-solid fa-arrow-left"></i> Back to List</button>
+
+    <div id="detailBox" class="card"></div>
+
+    <div style="background: white; margin: 15px; padding: 20px; border-radius: 14px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
+      <h4 style="margin-bottom: 10px; font-size: 14px;"><i class="fa-solid fa-indian-rupee-sign" style="color:var(--primary);"></i> 1. Payment Status</h4>
+      <input id="pay" type="number" class="form-control" placeholder="Enter Amount Collected">
+      <button id="payBtn" class="btn btn-primary" style="margin-top: 10px;" onclick="payNow()">
+        Confirm Payment
+      </button>
+
+      <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+      <h4 style="margin-bottom: 10px; font-size: 14px;"><i class="fa-solid fa-vial" style="color:var(--primary);"></i> 2. Upload Sample Tube Photo</h4>
+      <input type="file" id="photo" accept="image/*" capture="environment" class="form-control" style="padding: 8px;">
+      <button id="uploadBtn" class="btn btn-success" style="margin-top: 10px;" onclick="uploadPhoto()">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Photo & Complete
+      </button>
     </div>
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec"; // Replace with your Apps Script Web App URL
-    const UPI_ID = "healthspace@ybl";
+    const API = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
 
-    let loggedInPhlebo = {};
-    let activeRow = null;
-    let localPatients = [];
-    let capturedSelfieData = "";
-    let videoStream = null;
+    let patients = [];
+    let collected = [];
+    let currentRowIndex = null;
+    let paymentDone = false;
 
-    async function startSelfieVerification() {
-      const name = document.getElementById('loginName').value.trim();
-      const mobile = document.getElementById('loginMobile').value.trim();
-      const pass = document.getElementById('loginPass').value.trim();
+    window.onload = function() {
+      let t = localStorage.getItem("loginTime");
+      let m = localStorage.getItem("mobile");
 
-      if(!name || !mobile || !pass) {
-        return alert("Please fill in all required credentials.");
+      if (t && m && (Date.now() - t) < 12 * 60 * 60 * 1000) {
+        showDashboard();
+        fetchData();
       }
+    };
 
-      loggedInPhlebo = { name, mobile };
-      document.getElementById('cameraModal').style.display = 'flex';
+    function startCamera() {
+      let m = document.getElementById("mobile").value;
+      let p = document.getElementById("password").value;
 
-      try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        document.getElementById('videoElement').srcObject = videoStream;
-      } catch(e) {
-        alert("Camera access denied or unavailable.");
-        closeCamera();
-      }
+      if (!m) return alert("Please enter mobile number.");
+      if (p !== "12345") return alert("Invalid Password.");
+
+      localStorage.setItem("mobile", m);
+
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then(stream => {
+          hideAll();
+          document.getElementById("cameraBox").classList.add("active");
+          document.getElementById("video").srcObject = stream;
+        })
+        .catch(err => {
+          alert("Camera access unavailable. Logging in directly...");
+          loginSuccess();
+        });
     }
 
-    function closeCamera() {
-      if(videoStream) {
-        videoStream.getTracks().forEach(track => track.stop());
-      }
-      document.getElementById('cameraModal').style.display = 'none';
-    }
+    function capturePhoto() {
+      let v = document.getElementById("video");
+      let c = document.getElementById("canvas");
 
-    function captureSelfie() {
-      const video = document.getElementById('videoElement');
-      const canvas = document.getElementById('canvasElement');
-      canvas.width = video.videoWidth || 300;
-      canvas.height = video.videoHeight || 300;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      capturedSelfieData = canvas.toDataURL('image/jpeg');
-      closeCamera();
+      c.width = v.videoWidth || 300;
+      c.height = v.videoHeight || 300;
+      c.getContext("2d").drawImage(v, 0, 0);
 
-      document.getElementById('loginView').classList.remove('active');
-      document.getElementById('dashboardView').classList.add('active');
+      localStorage.setItem("photo", c.toDataURL("image/jpeg", 0.6));
 
-      document.getElementById('displayPhleboName').innerText = loggedInPhlebo.name;
-      document.getElementById('phleboAvatar').src = capturedSelfieData;
-
-      loadPhleboData();
-    }
-
-    function logout() {
-      if(confirm("Are you sure you want to logout?")) {
-        location.reload();
-      }
-    }
-
-    async function loadPhleboData() {
-      const container = document.getElementById('patientListContainer');
-      container.innerHTML = `<p style="text-align:center; padding:20px;">Fetching records...</p>`;
-
-      try {
-        const res = await fetch(`${SCRIPT_URL}?mobile=${loggedInPhlebo.mobile}`);
-        localPatients = await res.json();
-        localPatients.sort((a, b) => a.timeSlot.localeCompare(b.timeSlot));
-
-        updateStats(localPatients);
-        renderPatients(localPatients);
-      } catch(e) {
-        container.innerHTML = `<p style="text-align:center; color:red;">Failed to retrieve data.</p>`;
-      }
-    }
-
-    function updateStats(data) {
-      document.getElementById('stat-total').innerText = data.length;
-      const collected = data.filter(p => p.status === "Collected" || p.status === "Rescheduled").length;
-      document.getElementById('stat-collected').innerText = collected;
-      document.getElementById('stat-pending').innerText = data.length - collected;
-      
-      const totalAmount = data.reduce((sum, p) => sum + Number(p.amount || 0), 0);
-      document.getElementById('stat-revenue').innerText = "₹" + totalAmount;
-    }
-
-    function renderPatients(patients) {
-      const container = document.getElementById('patientListContainer');
-      container.innerHTML = '';
-
-      if(patients.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:var(--text-muted); padding:30px;">No bookings assigned currently.</p>`;
-        return;
+      if (v.srcObject) {
+        v.srcObject.getTracks().forEach(track => track.stop());
       }
 
-      let previousDone = true; // Sequential Time-Lock mechanism
+      loginSuccess();
+    }
 
-      patients.forEach((p, index) => {
-        const isPaid = p.paymentStatus === "Yes";
-        const isDone = p.status === "Collected" || p.status === "Rescheduled";
-        const isLocked = !previousDone;
+    function loginSuccess() {
+      localStorage.setItem("loginTime", Date.now());
+      showDashboard();
+      fetchData();
+    }
 
-        const card = document.createElement('div');
-        card.className = `patient-card ${isLocked ? 'locked' : ''}`;
+    function showDashboard() {
+      hideAll();
+      document.getElementById("dashboard").classList.add("active");
+      document.getElementById("userName").innerText = localStorage.getItem("name") || "Phlebotomist";
+      document.getElementById("userPhoto").src = localStorage.getItem("photo") || "https://via.placeholder.com/50";
+    }
 
-        card.innerHTML = `
-          <div class="card-top">
-            <div>
-              <div style="font-weight:600; font-size:15px;">${p.patientName}</div>
-              <div style="font-size:11px; color:var(--text-muted);">ID: ${p.bookingId}</div>
+    function fetchData() {
+      let m = localStorage.getItem("mobile");
+      document.getElementById("loader").style.display = "block";
+
+      fetch(API + "?mobile=" + encodeURIComponent(m))
+        .then(r => r.json())
+        .then(data => {
+          document.getElementById("loader").style.display = "none";
+          patients = [];
+          collected = [];
+
+          data.forEach(obj => {
+            let status = String(obj.data[10]).trim();
+            if (status.toLowerCase() === "collected") {
+              collected.push(obj);
+            } else {
+              patients.push(obj);
+            }
+          });
+
+          if (patients.length && patients[0].data[6]) {
+            localStorage.setItem("name", patients[0].data[6]);
+            document.getElementById("userName").innerText = patients[0].data[6];
+          }
+
+          render();
+          renderCollected();
+          updateTotal();
+        })
+        .catch(err => {
+          document.getElementById("loader").style.display = "none";
+          console.error("Fetch error:", err);
+        });
+    }
+
+    // RENDER PENDING LIST (Includes Call & Map Buttons)
+    function render() {
+      let html = "";
+      if (patients.length === 0) {
+        html = "<p style='text-align:center; padding:30px; color:var(--text-muted);'>No pending assignments.</p>";
+      } else {
+        patients.forEach((p, i) => {
+          let r = p.data;
+          html += `
+          <div class="card" onclick="openDetail(${i})">
+            <span class="time-badge"><i class="fa-regular fa-clock"></i> ${formatTime(r[2])}</span>
+            <div class="card-title">${r[3] || 'N/A'}</div>
+            <div class="card-info"><i class="fa-solid fa-vial"></i> <span>${r[7] || 'N/A'}</span></div>
+            <div class="card-info"><i class="fa-solid fa-indian-rupee-sign"></i> <span>Amount: ₹${r[8] || 0}</span></div>
+            <div class="card-info"><i class="fa-solid fa-location-dot"></i> <span>${r[5] || 'N/A'}</span></div>
+            
+            <div class="card-actions">
+              <a href="tel:${r[4]}" class="action-btn" onclick="event.stopPropagation()">
+                <i class="fa-solid fa-phone" style="color:var(--success);"></i> Call
+              </a>
+              <a href="https://maps.google.com/?q=${encodeURIComponent(r[5])}" target="_blank" class="action-btn" onclick="event.stopPropagation()">
+                <i class="fa-solid fa-map-location-dot" style="color:var(--primary);"></i> Map
+              </a>
             </div>
-            <span class="time-badge"><i class="fa-regular fa-clock"></i> ${p.timeSlot}</span>
-          </div>
+          </div>`;
+        });
+      }
+      document.getElementById("list").innerHTML = html;
+    }
 
-          <div class="p-details"><i class="fa-solid fa-location-dot"></i> <span>${p.address}</span></div>
-          <div class="p-details"><i class="fa-solid fa-vial"></i> <span>${p.packageName}</span></div>
-          <div class="p-details"><i class="fa-solid fa-phone"></i> <span>${p.phone}</span></div>
+    // DETAIL VIEW (Includes Call & Map options inside details too)
+    function openDetail(i) {
+      currentRowIndex = i;
+      paymentDone = (patients[i].data[12] === "Yes");
+      let r = patients[i].data;
 
-          <div class="p-details" style="justify-content: space-between; margin-top: 10px;">
-            <div><strong>Amount:</strong> ₹${p.amount}</div>
-            <div>
-              <span class="badge ${isPaid ? 'badge-paid' : 'badge-due'}">${isPaid ? 'PAID' : 'DUE'}</span>
-              ${isDone ? `<span class="badge badge-done">${p.status}</span>` : ''}
-            </div>
-          </div>
+      hideAll();
+      document.getElementById("detail").classList.add("active");
+      document.getElementById("pay").value = r[8] || "";
 
-          ${isLocked ? `<div style="font-size:11px; color:var(--danger); font-weight:600; margin-top:8px;"><i class="fa-solid fa-lock"></i> Locked: Complete previous assignment first</div>` : ''}
+      document.getElementById("detailBox").innerHTML = `
+        <div style="font-size:18px; font-weight:700; margin-bottom:10px;">${r[3]}</div>
+        <div class="card-info"><i class="fa-solid fa-vial"></i> <b>Test:</b> ${r[7]}</div>
+        <div class="card-info"><i class="fa-solid fa-location-dot"></i> <b>Address:</b> ${r[5]}</div>
+        <div class="card-info"><i class="fa-solid fa-phone"></i> <b>Phone:</b> ${r[4]}</div>
+        <div class="card-info"><i class="fa-solid fa-receipt"></i> <b>Bill Amount:</b> ₹${r[8]}</div>
+        
+        <div class="card-actions" style="margin-top: 15px;">
+          <a href="tel:${r[4]}" class="action-btn">
+            <i class="fa-solid fa-phone" style="color:var(--success);"></i> Call Patient
+          </a>
+          <a href="https://maps.google.com/?q=${encodeURIComponent(r[5])}" target="_blank" class="action-btn">
+            <i class="fa-solid fa-map-location-dot" style="color:var(--primary);"></i> Open Map
+          </a>
+        </div>
+      `;
+    }
 
-          ${!isDone && !isLocked ? `
-            <div class="btn-row">
-              ${!isPaid ? `
-                <button class="btn btn-primary" onclick="openQRModal('${p.amount}', ${p.row})"><i class="fa-solid fa-qrcode"></i> UPI QR</button>
-                <button class="btn btn-success" onclick="markCashPaid(${p.row})"><i class="fa-solid fa-money-bill"></i> Cash</button>
-              ` : `
-                <button class="btn btn-success" style="flex:2;" onclick="triggerUpload(${p.row})"><i class="fa-solid fa-camera"></i> Tube Photo & Complete</button>
-                <input type="file" id="file-${p.row}" accept="image/*" style="display:none;" onchange="uploadPhoto(${p.row})">
-              `}
-              <button class="btn btn-danger" onclick="openReschedule(${p.row})"><i class="fa-solid fa-xmark"></i> Not Collected</button>
-            </div>
-          ` : ''}
-        `;
+    function payNow() {
+      let amt = Number(document.getElementById("pay").value);
+      if (!amt || amt <= 0) return alert("Enter a valid payment amount.");
 
-        container.appendChild(card);
+      let btn = document.getElementById("payBtn");
+      btn.disabled = true;
+      btn.innerText = "Submitting...";
 
-        if(!isDone) {
-          previousDone = false;
+      fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          action: "payment",
+          row: patients[currentRowIndex].row
+        })
+      })
+      .then(r => r.json())
+      .then(res => {
+        btn.disabled = false;
+        btn.innerText = "Confirm Payment";
+        if (res.result === "success") {
+          paymentDone = true;
+          alert("Payment recorded successfully!");
+        } else {
+          alert("Error: " + res.message);
         }
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.innerText = "Confirm Payment";
+        alert("Network Error!");
       });
     }
 
-    function openQRModal(amount, row) {
-      activeRow = row;
-      document.getElementById('qrAmount').innerText = amount;
-      document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=${UPI_ID}%26pn=HealthSpace%26am=${amount}%26cu=INR`;
-      document.getElementById('qrModal').style.display = 'flex';
-    }
+    function uploadPhoto() {
+      let fileInput = document.getElementById("photo");
+      let file = fileInput.files[0];
 
-    document.getElementById('confirmPaymentBtn').onclick = async function() {
-      closeModal('qrModal');
-      await sendPaymentAPI(activeRow);
-    };
+      if (!file) return alert("Please select or capture sample photo.");
 
-    async function markCashPaid(row) {
-      if(confirm("Confirm cash payment received?")) {
-        await sendPaymentAPI(row);
-      }
-    }
+      let btn = document.getElementById("uploadBtn");
+      btn.disabled = true;
+      btn.innerText = "Uploading Photo...";
 
-    async function sendPaymentAPI(row) {
-      await fetch(`${SCRIPT_URL}?action=payment&row=${row}`, { method: 'POST' });
-      alert("Payment status updated successfully.");
-      loadPhleboData();
-    }
+      let reader = new FileReader();
+      reader.onload = function() {
+        let base64 = reader.result.split(",")[1];
 
-    function triggerUpload(row) {
-      document.getElementById(`file-${row}`).click();
-    }
+        fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "upload",
+            row: patients[currentRowIndex].row,
+            file: base64
+          })
+        })
+        .then(r => r.json())
+        .then(res => {
+          btn.disabled = false;
+          btn.innerText = "Upload Photo & Complete";
 
-    async function uploadPhoto(row) {
-      const fileInput = document.getElementById(`file-${row}`);
-      if(!fileInput.files[0]) return;
-
-      const reader = new FileReader();
-      reader.onload = async function() {
-        const base64 = reader.result.split(',')[1];
-        const formData = new URLSearchParams();
-        formData.append("file", base64);
-
-        alert("Uploading sample evidence...");
-        await fetch(`${SCRIPT_URL}?action=upload&row=${row}`, { method: 'POST', body: formData });
-        alert("Sample collected and uploaded successfully!");
-        loadPhleboData();
+          if (res.result === "success") {
+            alert("Sample collected and uploaded successfully!");
+            fileInput.value = "";
+            fetchData();
+            openCollected();
+          } else {
+            alert("Upload failed: " + res.message);
+          }
+        })
+        .catch(err => {
+          btn.disabled = false;
+          btn.innerText = "Upload Photo & Complete";
+          alert("Error uploading file to server.");
+        });
       };
-      reader.readAsDataURL(fileInput.files[0]);
+
+      reader.readAsDataURL(file);
     }
 
-    function openReschedule(row) {
-      activeRow = row;
-      document.getElementById('rescheduleModal').style.display = 'flex';
+    // RENDER COLLECTED LIST
+    function renderCollected() {
+      let html = "";
+      if (collected.length === 0) {
+        html = "<p style='text-align:center; padding:30px; color:var(--text-muted);'>No collected records yet.</p>";
+      } else {
+        collected.forEach(p => {
+          let r = p.data;
+          html += `
+          <div class="card" style="border-left-color: var(--success);">
+            <div class="card-title">${r[3]}</div>
+            <div class="card-info"><i class="fa-solid fa-vial"></i> ${r[7]}</div>
+            <div class="card-info"><i class="fa-solid fa-circle-check" style="color:var(--success);"></i> <b>Collected:</b> ₹${r[8]}</div>
+            ${r[11] ? `<div class="card-actions"><a href="${r[11]}" target="_blank" class="action-btn"><i class="fa-solid fa-image"></i> View Tube Photo</a></div>` : ''}
+          </div>`;
+        });
+      }
+      document.getElementById("collectedList").innerHTML = html;
     }
 
-    document.getElementById('submitRescheduleBtn').onclick = async function() {
-      const reason = document.getElementById('resReason').value;
-      const newDate = document.getElementById('resDate').value;
-      const newTime = document.getElementById('resTime').value;
+    function updateTotal() {
+      let total = 0;
+      collected.forEach(p => total += Number(p.data[8] || 0));
+      document.getElementById("total").innerText = total;
+    }
 
-      if(!reason) return alert("Please specify a reason.");
+    // 12-HOUR TIME FORMATTER
+    function formatTime(val) {
+      if (!val) return "N/A";
+      let d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      }
+      return val;
+    }
 
-      closeModal('rescheduleModal');
-      await fetch(`${SCRIPT_URL}?action=reschedule&row=${activeRow}&reason=${encodeURIComponent(reason)}&newDate=${newDate}&newTime=${newTime}`, { method: 'POST' });
-      alert("Reschedule request submitted successfully.");
-      loadPhleboData();
-    };
+    // NAVIGATION
+    function openPatients() { hideAll(); document.getElementById("patients").classList.add("active"); }
+    function openCollected() { hideAll(); document.getElementById("collected").classList.add("active"); }
+    function goDash() { hideAll(); document.getElementById("dashboard").classList.add("active"); }
+    function backPatients() { openPatients(); }
 
-    function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
+    function hideAll() {
+      document.querySelectorAll(".view-section").forEach(el => el.classList.remove("active"));
+    }
+
+    function logout() {
+      if (confirm("Logout from Health Space?")) {
+        localStorage.clear();
+        location.reload();
+      }
     }
   </script>
 </body>
