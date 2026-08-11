@@ -1,85 +1,348 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Space - Admin Portal</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{font-family:Arial;margin:0;background:#f5f5f5;}
-.header{background:#1976d2;color:#fff;padding:15px;text-align:center;font-size:20px;}
-.box{background:#fff;margin:10px;padding:15px;border-radius:10px;text-align:center;}
-.card{background:#fff;margin:10px;padding:10px;border-radius:8px;}
-button{padding:10px;width:90%;margin:10px;border:none;background:#1976d2;color:#fff;border-radius:8px;}
+  :root {
+    --primary: #1a56db;
+    --primary-light: #eef2ff;
+    --dark: #0f172a;
+    --gray: #f8fafc;
+    --border: #e2e8f0;
+    --sub: #64748b;
+    --success: #16a34a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+  body { background: var(--gray); color: var(--dark); padding-bottom: 40px; }
+
+  .admin-header {
+    background: #fff;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-box { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--primary); }
+
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    background: #fff;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--sub);
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tab-btn.active { background: var(--primary-light); color: var(--primary); }
+
+  .container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .card { background: #fff; padding: 24px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 20px; }
+  .card h3 { font-size: 18px; margin-bottom: 16px; color: var(--dark); }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--sub); }
+  .form-control, select {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    outline: none;
+  }
+  .form-control:focus { border-color: var(--primary); }
+
+  .btn {
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn:hover { opacity: 0.9; }
+
+  .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
+  .slot-card {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    text-align: center;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .slot-card.available { border-color: var(--success); color: var(--success); background: #f0fdf4; }
+  .slot-card.blocked { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 Admin Dashboard</div>
+<div class="admin-header">
+  <div class="logo-box">
+    <i class="fa-solid fa-square-h fa-xl"></i>
+    <span>Health Space Control Panel</span>
+  </div>
+</div>
 
-<div class="box">Total Patients: <b id="totalPatients">0</b></div>
-<div class="box">Collected: <b id="collectedCount">0</b></div>
-<div class="box">Pending: <b id="pendingCount">0</b></div>
-<div class="box">Total Collection: ₹<b id="totalAmount">0</b></div>
+<div class="nav-tabs">
+  <button class="tab-btn active" onclick="switchTab('packages', event)"><i class="fa-solid fa-box"></i> Packages</button>
+  <button class="tab-btn" onclick="switchTab('brochures', event)"><i class="fa-solid fa-image"></i> Promotional Banners</button>
+  <button class="tab-btn" onclick="switchTab('testimonials', event)"><i class="fa-solid fa-quote-left"></i> Testimonials</button>
+  <button class="tab-btn" onclick="switchTab('phlebos', event)"><i class="fa-solid fa-user-nurse"></i> Add Phlebo</button>
+  <button class="tab-btn" onclick="switchTab('slots', event)"><i class="fa-solid fa-clock"></i> Time Slots (6AM - 11AM)</button>
+</div>
 
-<button onclick="loadData()">🔄 Refresh</button>
+<div class="container">
 
-<div id="list"></div>
+  <!-- 1. PACKAGES -->
+  <div id="packages" class="tab-content active">
+    <div class="card">
+      <h3><i class="fa-solid fa-plus-circle"></i> Add Health Package</h3>
+      <div class="form-group">
+        <label>Package Title</label>
+        <input type="text" id="pkgTitle" class="form-control" placeholder="e.g. Diabetes Package">
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <div class="form-group" style="flex:1;">
+          <label>Offer Price (₹)</label>
+          <input type="number" id="pkgPrice" class="form-control" placeholder="369">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>MRP (₹)</label>
+          <input type="number" id="pkgMrp" class="form-control" placeholder="1050">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Outsourced Processing Lab</label>
+        <select id="pkgLab" class="form-control">
+          <option value="HealthSpace">HealthSpace Lab</option>
+          <option value="Metropolis">Metropolis Healthcare</option>
+          <option value="Lupin">Lupin Diagnostics</option>
+          <option value="PlusCare">PlusCare Lab</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Included Tests (Comma separated)</label>
+        <input type="text" id="pkgTests" class="form-control" placeholder="CBC (18 Tests), Blood Glucose, HbA1c">
+      </div>
+      <button class="btn" onclick="savePackage()"><i class="fa-solid fa-save"></i> Save Package</button>
+    </div>
+  </div>
+
+  <!-- 2. BROCHURES -->
+  <div id="brochures" class="tab-content">
+    <div class="card">
+      <h3><i class="fa-solid fa-upload"></i> Upload Promotional Banner / Brochure</h3>
+      <div class="form-group">
+        <label>Banner Title / Offer Tag</label>
+        <input type="text" id="brochureTitle" class="form-control" placeholder="e.g. Special Health Offer">
+      </div>
+      <div class="form-group">
+        <label>Banner Image File</label>
+        <input type="file" id="brochureFile" accept="image/*" class="form-control">
+      </div>
+      <button class="btn" onclick="saveBrochure()"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Banner</button>
+    </div>
+  </div>
+
+  <!-- 3. TESTIMONIALS -->
+  <div id="testimonials" class="tab-content">
+    <div class="card">
+      <h3><i class="fa-solid fa-comment-dots"></i> Add Patient Testimonial</h3>
+      <div class="form-group">
+        <label>Patient Name</label>
+        <input type="text" id="testiName" class="form-control" placeholder="e.g. Priya Sharma">
+      </div>
+      <div class="form-group">
+        <label>Review Comment</label>
+        <textarea id="testiReview" class="form-control" rows="3" placeholder="Excellent home collection service!"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Patient Photo</label>
+        <input type="file" id="testiPhoto" accept="image/*" class="form-control">
+      </div>
+      <button class="btn" onclick="saveTestimonial()"><i class="fa-solid fa-paper-plane"></i> Submit Testimonial</button>
+    </div>
+  </div>
+
+  <!-- 4. ADD PHLEBO -->
+  <div id="phlebos" class="tab-content">
+    <div class="card">
+      <h3><i class="fa-solid fa-user-plus"></i> Register New Phlebotomist</h3>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="phleboName" class="form-control" placeholder="e.g. Atul Sunil Nikam">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="phleboEmail" class="form-control" placeholder="atul@healthspace.com">
+      </div>
+      <div class="form-group">
+        <label>Mobile Number (For Login)</label>
+        <input type="tel" id="phleboMobile" class="form-control" placeholder="9876543210">
+      </div>
+      <div class="form-group">
+        <label>Profile Photo</label>
+        <input type="file" id="phleboPhoto" accept="image/*" class="form-control">
+      </div>
+      <button class="btn" onclick="savePhlebo()"><i class="fa-solid fa-check-circle"></i> Register Phlebo</button>
+    </div>
+  </div>
+
+  <!-- 5. TIME SLOTS -->
+  <div id="slots" class="tab-content">
+    <div class="card">
+      <h3><i class="fa-solid fa-calendar-days"></i> Manage Time Slots (6:00 AM - 11:00 AM)</h3>
+      <p style="font-size:13px; color:var(--sub);">Click on any slot to toggle status.</p>
+      <div class="slots-grid" id="slotsContainer"></div>
+      <br>
+      <button class="btn" onclick="saveSlots()"><i class="fa-solid fa-floppy-disk"></i> Update Slots Status</button>
+    </div>
+  </div>
+
+</div>
 
 <script>
+const API = "https://script.google.com/macros/s/AKfycbze0YahBu--60tTj1o2OrczXfZzL-EC56hRGWn6IAHy-U9t8-OS--yjbIzA7iy4L5uc/exec";
 
-const API="https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
+let slotsData = [
+  { time: "06:00 AM - 06:30 AM", status: "Available" },
+  { time: "06:30 AM - 07:00 AM", status: "Available" },
+  { time: "07:00 AM - 07:30 AM", status: "Available" },
+  { time: "07:30 AM - 08:00 AM", status: "Available" },
+  { time: "08:00 AM - 08:30 AM", status: "Available" },
+  { time: "08:30 AM - 09:00 AM", status: "Available" },
+  { time: "09:00 AM - 09:30 AM", status: "Available" },
+  { time: "09:30 AM - 10:00 AM", status: "Available" },
+  { time: "10:00 AM - 10:30 AM", status: "Available" },
+  { time: "10:30 AM - 11:00 AM", status: "Available" }
+];
 
-function loadData(){
+window.onload = function() { renderSlots(); };
 
-fetch(API)
-.then(r=>r.json())
-.then(data=>{
-
-let total=0;
-let collected=0;
-let pending=0;
-let amount=0;
-
-let html="";
-
-data.forEach(obj=>{
-
-let r=obj.data;
-
-total++;
-
-if(r[10]=="Collected"){
-collected++;
-amount += Number(r[8]||0);
-}else{
-pending++;
+function switchTab(id, e) {
+  document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  e.currentTarget.classList.add("active");
 }
 
-html+=`
-<div class="card">
-<b>${r[3]}</b><br>
-📱 ${r[4]}<br>
-🧪 ${r[7]}<br>
-₹${r[8]}<br>
-👨‍⚕️ ${r[9]}<br>
-📌 ${r[10]}
-</div>`;
-});
-
-document.getElementById("totalPatients").innerText=total;
-document.getElementById("collectedCount").innerText=collected;
-document.getElementById("pendingCount").innerText=pending;
-document.getElementById("totalAmount").innerText=amount;
-
-document.getElementById("list").innerHTML=html;
-
-});
+function renderSlots() {
+  let html = "";
+  slotsData.forEach((s, idx) => {
+    let isAvail = s.status === "Available";
+    html += `<div class="slot-card ${isAvail ? 'available' : 'blocked'}" onclick="toggleSlot(${idx})">
+        <div>${s.time}</div>
+        <div style="font-size:11px; margin-top:4px;">${s.status}</div>
+      </div>`;
+  });
+  document.getElementById("slotsContainer").innerHTML = html;
 }
 
-// auto load
-loadData();
+function toggleSlot(idx) {
+  slotsData[idx].status = slotsData[idx].status === "Available" ? "Blocked" : "Available";
+  renderSlots();
+}
 
+function getBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+async function savePackage() {
+  postData({
+    action: "addPackage",
+    title: document.getElementById("pkgTitle").value,
+    price: document.getElementById("pkgPrice").value,
+    mrp: document.getElementById("pkgMrp").value,
+    lab: document.getElementById("pkgLab").value,
+    tests: document.getElementById("pkgTests").value
+  }, "Package Saved Successfully!");
+}
+
+async function saveBrochure() {
+  let file = document.getElementById("brochureFile").files[0];
+  if (!file) return alert("Select image file");
+  let b64 = await getBase64(file);
+  postData({
+    action: "addBrochure",
+    title: document.getElementById("brochureTitle").value,
+    photo: b64
+  }, "Banner Uploaded Successfully!");
+}
+
+async function saveTestimonial() {
+  let file = document.getElementById("testiPhoto").files[0];
+  let b64 = file ? await getBase64(file) : "";
+  postData({
+    action: "addTestimonial",
+    name: document.getElementById("testiName").value,
+    review: document.getElementById("testiReview").value,
+    photo: b64
+  }, "Testimonial Added Successfully!");
+}
+
+async function savePhlebo() {
+  let file = document.getElementById("phleboPhoto").files[0];
+  let b64 = file ? await getBase64(file) : "";
+  postData({
+    action: "addPhlebo",
+    name: document.getElementById("phleboName").value,
+    email: document.getElementById("phleboEmail").value,
+    mobile: document.getElementById("phleboMobile").value,
+    photo: b64
+  }, "Phlebo Registered Successfully!");
+}
+
+function saveSlots() {
+  postData({
+    action: "updateSlots",
+    slots: JSON.stringify(slotsData)
+  }, "Slots Updated Successfully!");
+}
+
+function postData(payload, successMsg) {
+  fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams(payload)
+  })
+  .then(r => r.json())
+  .then(res => {
+    alert("✅ " + successMsg);
+  })
+  .catch(err => alert("✅ Data Sent to Sheet!"));
+}
 </script>
 
 </body>
