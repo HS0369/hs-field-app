@@ -1,607 +1,77 @@
 <!DOCTYPE html>
-<html lang="mr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Health Space - Phlebo App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthSpace - Phlebo Portal</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --primary: #1a56db;
-    --primary-light: #eef2ff;
-    --dark: #0f172a;
-    --gray-bg: #f8fafc;
-    --border: #e2e8f0;
-    --text-sub: #64748b;
-    --success: #16a34a;
-    --danger: #dc2626;
+    --header-bg: #2b5b84;
+    --bg: #f4f6f9;
+    --dark: #1f2937;
+    --sub: #6b7280;
+    --card-bg: #ffffff;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-  body { background-color: var(--gray-bg); color: var(--dark); padding-bottom: 30px; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--dark); padding-bottom: 30px; }
 
-  /* VIEW SWITCHING */
-  .view-section { display: none; }
-  .view-section.active { display: block; }
+  .phlebo-header {
+    background: var(--header-bg); color: #fff; padding: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-radius: 0 0 20px 20px;
+  }
+  .user-info { display: flex; align-items: center; gap: 12px; }
+  .user-avatar { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+  .user-details h4 { font-size: 13px; font-weight: 500; opacity: 0.8; }
+  .user-details h3 { font-size: 16px; font-weight: 700; }
 
-  /* FORM INPUTS & BUTTONS */
-  .form-control {
-    width: 100%;
-    padding: 14px 16px;
-    margin-top: 12px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    font-size: 15px;
-    outline: none;
-    background: #fff;
-  }
-  .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1); }
+  .section-title { font-size: 16px; font-weight: 700; margin: 20px 16px 12px; color: var(--dark); }
 
-  .btn {
-    width: 100%;
-    padding: 14px;
-    margin-top: 15px;
-    border-radius: 12px;
-    border: none;
-    background: var(--primary);
-    color: #fff;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+  /* QUICK LINKS GRID */
+  .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 16px; }
+  .grid-item {
+    background: #fff; padding: 18px 10px; border-radius: 12px;
+    text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   }
-  .btn:active { opacity: 0.9; transform: scale(0.98); }
-  .btn-success { background: var(--success); }
-
-  /* 1. LOGIN SCREEN */
-  .login-screen {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-    background: #ffffff;
-    text-align: center;
-  }
-  .brand-logo-img { max-width: 160px; height: auto; margin-bottom: 12px; }
-  .login-screen h2 { color: var(--dark); font-size: 26px; font-weight: 700; }
-  .login-screen p { color: var(--text-sub); font-size: 14px; margin-bottom: 24px; font-weight: 500; }
-  .login-form { width: 100%; max-width: 320px; }
-
-  /* 2. APP HEADER */
-  .app-header {
-    background: #ffffff;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  .profile-section { display: flex; align-items: center; gap: 12px; }
-  .user-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--primary-light);
-  }
-  .welcome-text small { color: var(--text-sub); font-size: 12px; display: block; font-weight: 500; }
-  .welcome-text b { font-size: 15px; color: var(--dark); font-weight: 700; }
-  .header-logo img { height: 32px; width: auto; }
-
-  /* 3. DASHBOARD */
-  .dash-container { padding: 20px; }
-  .wallet-card {
-    background: linear-gradient(135deg, #1a56db, #1e40af);
-    color: white;
-    padding: 20px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 20px rgba(26, 86, 219, 0.15);
-  }
-  .wallet-card small { font-size: 12px; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-  .wallet-card h3 { font-size: 26px; font-weight: 700; margin-top: 2px; }
-
-  .section-title { font-size: 13px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-
-  .grid-menu {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .grid-card {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    cursor: pointer;
-    color: var(--dark);
-  }
-  .grid-card i { font-size: 24px; color: var(--primary); }
-  .grid-card span { font-size: 14px; font-weight: 600; }
-
-  .logout-card {
-    grid-column: span 2;
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: var(--danger);
-    flex-direction: row;
-    padding: 14px;
-  }
-  .logout-card i { color: var(--danger); font-size: 18px; }
-
-  /* LIST & DETAILS */
-  .card {
-    background: #ffffff;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid var(--border);
-    position: relative;
-  }
-  .time-badge {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: var(--primary-light);
-    color: var(--primary);
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .card-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--dark); }
-  .card-info { font-size: 13px; color: var(--text-sub); margin-top: 5px; display: flex; align-items: center; gap: 8px; }
-  .card-info i { color: var(--primary); width: 14px; }
-
-  .card-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-  }
-  .action-btn {
-    flex: 1;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #fff;
-    color: var(--dark);
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  .back-nav {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 12px 16px;
-    color: var(--dark);
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  video { width: 100%; max-width: 320px; height: 260px; border-radius: 16px; background: #000; margin: 15px 0; object-fit: cover; }
-  .loader { display: none; text-align: center; padding: 20px; font-weight: 600; color: var(--primary); }
+  .grid-item i { font-size: 22px; color: #2b5b84; margin-bottom: 8px; }
+  .grid-item span { display: block; font-size: 12px; font-weight: 600; color: #4b5563; }
 </style>
 </head>
 
 <body>
 
-<!-- 1. LOGIN -->
-<div id="login" class="view-section login-screen active">
-  <img src="logo.png" alt="Health Space" class="brand-logo-img" onerror="this.onerror=null; this.src='1000531193.png';">
-  <h2>Health Space</h2>
-  <p>Phlebo App</p>
-
-  <div class="login-form">
-    <input id="mobile" type="tel" class="form-control" placeholder="Mobile Number">
-    <input id="password" type="password" class="form-control" placeholder="Password (12345)">
-    <button class="btn" onclick="startCamera()"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
-  </div>
-</div>
-
-<!-- 2. CAMERA -->
-<div id="cameraBox" class="view-section" style="text-align: center; padding: 40px 20px;">
-  <h3 style="font-size: 20px;">Selfie Verification</h3>
-  <p style="color: var(--text-sub); font-size: 13px;">Take a clear photo to mark attendance</p>
-  <video id="video" autoplay playsinline></video><br>
-  <button class="btn btn-success" style="max-width: 320px;" onclick="capturePhoto()"><i class="fa-solid fa-camera"></i> Capture & Continue</button>
-</div>
-
-<canvas id="canvas" style="display:none"></canvas>
-
-<!-- 3. DASHBOARD -->
-<div id="dashboard" class="view-section">
-  <div class="app-header">
-    <div class="profile-section">
-      <img id="userPhoto" class="user-avatar" src="https://via.placeholder.com/50" alt="User">
-      <div class="welcome-text">
-        <small>Welcome,</small>
-        <b id="userName">Phlebotomist</b>
-      </div>
-    </div>
-    <div class="header-logo">
-      <img src="logo.png" alt="Health Space" onerror="this.onerror=null; this.src='1000531193.png';">
-    </div>
-  </div>
-
-  <div class="dash-container">
-    <div class="wallet-card">
-      <div>
-        <small>Total Collected</small>
-        <h3>₹<span id="total">0</span></h3>
-      </div>
-      <i class="fa-solid fa-wallet" style="font-size: 32px; opacity: 0.8;"></i>
-    </div>
-
-    <div class="section-title">Quick Links</div>
-    <div class="grid-menu">
-      <div class="grid-card" onclick="openPatients()">
-        <i class="fa-solid fa-clock-rotate-left"></i>
-        <span>Pending</span>
-      </div>
-
-      <div class="grid-card" onclick="openCollected()">
-        <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
-        <span>Completed</span>
-      </div>
-
-      <div class="grid-card logout-card" onclick="logout()">
-        <i class="fa-solid fa-right-from-bracket"></i>
-        <span>Logout</span>
-      </div>
+<div class="phlebo-header">
+  <div class="user-info">
+    <img src="https://via.placeholder.com/44" id="phleboPic" class="user-avatar" alt="Avatar">
+    <div class="user-details">
+      <h4>Welcome ,</h4>
+      <h3 id="phleboName">Phlebo Officer</h3>
     </div>
   </div>
 </div>
 
-<!-- 4. PENDING ORDERS -->
-<div id="patients" class="view-section">
-  <div class="back-nav" onclick="goDash()"><i class="fa-solid fa-arrow-left"></i> Dashboard</div>
-  <div style="padding: 0 16px;">
-    <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Pending Orders</h3>
-    <div id="loader" class="loader"><i class="fa-solid fa-spinner fa-spin"></i> Fetching Data...</div>
-    <div id="list"></div>
-  </div>
+<h3 class="section-title">Quick Links</h3>
+<div class="grid-container">
+  <div class="grid-item"><i class="fa-solid fa-calendar-minus"></i><span>Leave</span></div>
+  <div class="grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Orders</span></div>
+  <div class="grid-item"><i class="fa-solid fa-square-check"></i><span>Served</span></div>
+  <div class="grid-item"><i class="fa-solid fa-network-wired"></i><span>Hub</span></div>
+  <div class="grid-item"><i class="fa-solid fa-bars-staggered"></i><span>Lead</span></div>
+  <div class="grid-item"><i class="fa-solid fa-truck-ramp-box"></i><span>Pick Order</span></div>
 </div>
 
-<!-- 5. COMPLETED ORDERS -->
-<div id="collected" class="view-section">
-  <div class="back-nav" onclick="goDash()"><i class="fa-solid fa-arrow-left"></i> Dashboard</div>
-  <div style="padding: 0 16px;">
-    <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Completed Orders</h3>
-    <div id="collectedList"></div>
-  </div>
+<h3 class="section-title">Others</h3>
+<div class="grid-container">
+  <div class="grid-item"><i class="fa-solid fa-envelope"></i><span>HCW Letter</span></div>
+  <div class="grid-item"><i class="fa-solid fa-asterisk"></i><span>Password</span></div>
+  <div class="grid-item"><i class="fa-solid fa-comment-dots"></i><span>Feedback</span></div>
+  <div class="grid-item"><i class="fa-solid fa-circle-play"></i><span>Video</span></div>
+  <div class="grid-item"><i class="fa-solid fa-certificate"></i><span>Certificate</span></div>
+  <div class="grid-item" onclick="location.reload()"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Logout</span></div>
 </div>
-
-<!-- 6. ORDER DETAIL & UPLOAD -->
-<div id="detail" class="view-section">
-  <div class="back-nav" onclick="backPatients()"><i class="fa-solid fa-arrow-left"></i> Back to Pending</div>
-  <div style="padding: 0 16px;">
-    <div id="detailBox" class="card"></div>
-
-    <div style="background: #fff; padding: 20px; border-radius: 16px; border: 1px solid var(--border); margin-top: 12px;">
-      <h4 style="font-size: 14px; margin-bottom: 8px;"><i class="fa-solid fa-indian-rupee-sign" style="color: var(--primary);"></i> 1. Payment Status</h4>
-      <input id="pay" type="number" class="form-control" placeholder="Amount Collected">
-      <button id="payBtn" class="btn" onclick="payNow()">Confirm Payment</button>
-
-      <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border);">
-
-      <h4 style="font-size: 14px; margin-bottom: 8px;"><i class="fa-solid fa-vial" style="color: var(--primary);"></i> 2. Upload Sample Tube Photo</h4>
-      <input type="file" id="photo" accept="image/*" capture="environment" class="form-control" style="padding: 10px;">
-      <button id="uploadBtn" class="btn btn-success" onclick="uploadPhoto()"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Photo & Complete</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// REPLACE WITH YOUR PUBLISHED GOOGLE APPS SCRIPT WEB APP URL
-const API = "https://script.google.com/macros/s/AKfycbzDHuowRFqr63Pxnm4Lk_DWjT3oUZIDBqAAYnyGf1qu_UqF8RILKn1qYmXAWIVm7jvH/exec";
-
-let patients = [];
-let collected = [];
-let currentRowIndex = null;
-
-window.onload = function() {
-  let t = localStorage.getItem("loginTime");
-  let m = localStorage.getItem("mobile");
-
-  if (t && m && (Date.now() - t) < 12 * 60 * 60 * 1000) {
-    showDashboard();
-    fetchData();
-  }
-};
-
-function startCamera() {
-  let m = document.getElementById("mobile").value;
-  let p = document.getElementById("password").value;
-
-  if (!m) return alert("Please enter mobile number.");
-  if (p !== "12345") return alert("Wrong password!");
-
-  localStorage.setItem("mobile", m);
-
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-    .then(stream => {
-      hideAll();
-      document.getElementById("cameraBox").classList.add("active");
-      document.getElementById("video").srcObject = stream;
-    })
-    .catch(err => {
-      loginSuccess();
-    });
-}
-
-function capturePhoto() {
-  let v = document.getElementById("video");
-  let c = document.getElementById("canvas");
-
-  c.width = v.videoWidth || 300;
-  c.height = v.videoHeight || 300;
-  c.getContext("2d").drawImage(v, 0, 0);
-
-  localStorage.setItem("photo", c.toDataURL("image/jpeg", 0.6));
-
-  if (v.srcObject) {
-    v.srcObject.getTracks().forEach(track => track.stop());
-  }
-
-  loginSuccess();
-}
-
-function loginSuccess() {
-  localStorage.setItem("loginTime", Date.now());
-  showDashboard();
-  fetchData();
-}
-
-function showDashboard() {
-  hideAll();
-  document.getElementById("dashboard").classList.add("active");
-  document.getElementById("userName").innerText = localStorage.getItem("name") || "Phlebotomist";
-  document.getElementById("userPhoto").src = localStorage.getItem("photo") || "https://via.placeholder.com/50";
-}
-
-function fetchData() {
-  let m = localStorage.getItem("mobile");
-  document.getElementById("loader").style.display = "block";
-
-  fetch(API + "?mobile=" + encodeURIComponent(m))
-    .then(r => r.json())
-    .then(data => {
-      document.getElementById("loader").style.display = "none";
-      patients = [];
-      collected = [];
-
-      data.forEach(obj => {
-        let status = String(obj.data[10]).trim();
-        if (status.toLowerCase() === "collected") {
-          collected.push(obj);
-        } else {
-          patients.push(obj);
-        }
-      });
-
-      if (patients.length && patients[0].data[6]) {
-        localStorage.setItem("name", patients[0].data[6]);
-        document.getElementById("userName").innerText = patients[0].data[6];
-      }
-
-      render();
-      renderCollected();
-      updateTotal();
-    })
-    .catch(err => {
-      document.getElementById("loader").style.display = "none";
-      console.error(err);
-    });
-}
-
-function render() {
-  let html = "";
-  if (patients.length === 0) {
-    html = "<p style='text-align:center; padding:30px; color:var(--text-sub);'>No pending assignments.</p>";
-  } else {
-    patients.forEach((p, i) => {
-      let r = p.data;
-      html += `
-      <div class="card" onclick="openDetail(${i})">
-        <span class="time-badge"><i class="fa-regular fa-clock"></i> ${formatTime(r[2])}</span>
-        <div class="card-title">${r[3] || 'N/A'}</div>
-        <div class="card-info"><i class="fa-solid fa-vial"></i> <span>${r[7] || 'N/A'}</span></div>
-        <div class="card-info"><i class="fa-solid fa-indian-rupee-sign"></i> <span>Amount: ₹${r[8] || 0}</span></div>
-        <div class="card-info"><i class="fa-solid fa-location-dot"></i> <span>${r[5] || 'N/A'}</span></div>
-        
-        <div class="card-actions">
-          <a href="tel:${r[4]}" class="action-btn" onclick="event.stopPropagation()">
-            <i class="fa-solid fa-phone" style="color:var(--success);"></i> Call
-          </a>
-          <a href="https://maps.google.com/?q=${encodeURIComponent(r[5])}" target="_blank" class="action-btn" onclick="event.stopPropagation()">
-            <i class="fa-solid fa-map-location-dot" style="color:var(--primary);"></i> Map
-          </a>
-        </div>
-      </div>`;
-    });
-  }
-  document.getElementById("list").innerHTML = html;
-}
-
-function openDetail(i) {
-  currentRowIndex = i;
-  let r = patients[i].data;
-
-  hideAll();
-  document.getElementById("detail").classList.add("active");
-  document.getElementById("pay").value = r[8] || "";
-
-  document.getElementById("detailBox").innerHTML = `
-    <div style="font-size:18px; font-weight:700; margin-bottom:10px;">${r[3]}</div>
-    <div class="card-info"><i class="fa-solid fa-vial"></i> <b>Test:</b> ${r[7]}</div>
-    <div class="card-info"><i class="fa-solid fa-location-dot"></i> <b>Address:</b> ${r[5]}</div>
-    <div class="card-info"><i class="fa-solid fa-phone"></i> <b>Phone:</b> ${r[4]}</div>
-    <div class="card-info"><i class="fa-solid fa-receipt"></i> <b>Bill Amount:</b> ₹${r[8]}</div>
-    
-    <div class="card-actions" style="margin-top:14px;">
-      <a href="tel:${r[4]}" class="action-btn"><i class="fa-solid fa-phone" style="color:var(--success);"></i> Call Patient</a>
-      <a href="https://maps.google.com/?q=${encodeURIComponent(r[5])}" target="_blank" class="action-btn"><i class="fa-solid fa-map-location-dot" style="color:var(--primary);"></i> Open Map</a>
-    </div>
-  `;
-}
-
-function payNow() {
-  let amt = Number(document.getElementById("pay").value);
-  if (!amt || amt <= 0) return alert("Please enter a valid amount.");
-
-  let btn = document.getElementById("payBtn");
-  btn.disabled = true;
-  btn.innerText = "Submitting...";
-
-  fetch(API, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      action: "payment",
-      row: patients[currentRowIndex].row
-    })
-  })
-  .then(r => r.json())
-  .then(res => {
-    btn.disabled = false;
-    btn.innerText = "Confirm Payment";
-    if (res.result === "success") {
-      alert("✅ Payment status recorded!");
-    } else {
-      alert("Error: " + res.message);
-    }
-  })
-  .catch(err => {
-    btn.disabled = false;
-    btn.innerText = "Confirm Payment";
-    alert("Network Error!");
-  });
-}
-
-function uploadPhoto() {
-  let fileInput = document.getElementById("photo");
-  let file = fileInput.files[0];
-
-  if (!file) return alert("Select or capture photo first.");
-
-  let btn = document.getElementById("uploadBtn");
-  btn.disabled = true;
-  btn.innerText = "Uploading Photo...";
-
-  let reader = new FileReader();
-  reader.onload = function() {
-    let base64 = reader.result.split(",")[1];
-
-    fetch(API, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        action: "upload",
-        row: patients[currentRowIndex].row,
-        file: base64
-      })
-    })
-    .then(r => r.json())
-    .then(res => {
-      btn.disabled = false;
-      btn.innerText = "Upload Photo & Complete";
-
-      if (res.result === "success") {
-        alert("🎉 Sample collected & uploaded to Drive!");
-        fileInput.value = "";
-        fetchData();
-        openCollected();
-      } else {
-        alert("Upload failed: " + res.message);
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerText = "Upload Photo & Complete";
-      alert("Error uploading image.");
-    });
-  };
-
-  reader.readAsDataURL(file);
-}
-
-function renderCollected() {
-  let html = "";
-  if (collected.length === 0) {
-    html = "<p style='text-align:center; padding:30px; color:var(--text-sub);'>No completed records.</p>";
-  } else {
-    collected.forEach(p => {
-      let r = p.data;
-      html += `
-      <div class="card" style="border-left: 4px solid var(--success);">
-        <div class="card-title">${r[3]}</div>
-        <div class="card-info"><i class="fa-solid fa-vial"></i> ${r[7]}</div>
-        <div class="card-info"><i class="fa-solid fa-circle-check" style="color:var(--success);"></i> <b>Collected:</b> ₹${r[8]}</div>
-        ${r[11] ? `<div class="card-actions"><a href="${r[11]}" target="_blank" class="action-btn"><i class="fa-solid fa-image"></i> View Tubes Photo</a></div>` : ''}
-      </div>`;
-    });
-  }
-  document.getElementById("collectedList").innerHTML = html;
-}
-
-function updateTotal() {
-  let total = 0;
-  collected.forEach(p => total += Number(p.data[8] || 0));
-  document.getElementById("total").innerText = total;
-}
-
-function formatTime(val) {
-  if (!val) return "N/A";
-  let d = new Date(val);
-  if (!isNaN(d.getTime())) {
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-  }
-  return val;
-}
-
-function openPatients() { hideAll(); document.getElementById("patients").classList.add("active"); }
-function openCollected() { hideAll(); document.getElementById("collected").classList.add("active"); }
-function goDash() { hideAll(); document.getElementById("dashboard").classList.add("active"); }
-function backPatients() { openPatients(); }
-
-function hideAll() {
-  document.querySelectorAll(".view-section").forEach(el => el.classList.remove("active"));
-}
-
-function logout() {
-  if (confirm("Logout from Health Space Phlebo App?")) {
-    localStorage.clear();
-    location.reload();
-  }
-}
-</script>
 
 </body>
 </html>
