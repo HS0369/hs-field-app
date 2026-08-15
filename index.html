@@ -1,40 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HealthSpace - Phlebo Portal</title>
+<title>HealthSpace - Phlebo Login</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --header-bg: #2b5b84;
-    --bg: #f4f6f9;
-    --dark: #1f2937;
-    --sub: #6b7280;
-    --card-bg: #ffffff;
+    --primary: #0088cc;
+    --bg-light: #f4f8fb;
+    --dark-blue: #1c2b36;
+    --sub: #667788;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-  body { background: var(--bg); color: var(--dark); padding-bottom: 30px; }
+  body { background: var(--bg-light); color: var(--dark-blue); }
 
+  /* LOGIN BOX */
+  .login-container {
+    max-width: 400px; margin: 60px auto 20px; padding: 30px 24px;
+    background: #fff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  .logo-img { height: 45px; margin-bottom: 12px; }
+  .brand-title { font-size: 22px; font-weight: 700; color: #1c2b36; }
+  .brand-sub { font-size: 13px; color: var(--sub); margin-bottom: 28px; }
+
+  .form-group { margin-bottom: 16px; text-align: left; }
+  .form-control {
+    width: 100%; padding: 14px 16px; border-radius: 12px;
+    border: 1px solid #e0e7ff; background: #f8fafc; font-size: 14px; outline: none;
+  }
+  .form-control:focus { border-color: var(--primary); background: #fff; }
+
+  .btn-login {
+    width: 100%; background: var(--primary); color: #fff; padding: 14px;
+    border-radius: 12px; border: none; font-size: 15px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+  }
+
+  /* DASHBOARD SECTION */
+  #dashboardView { display: none; }
   .phlebo-header {
-    background: var(--header-bg); color: #fff; padding: 16px;
+    background: #2b5b84; color: #fff; padding: 18px 16px;
     display: flex; justify-content: space-between; align-items: center;
     border-radius: 0 0 20px 20px;
   }
   .user-info { display: flex; align-items: center; gap: 12px; }
   .user-avatar { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-  .user-details h4 { font-size: 13px; font-weight: 500; opacity: 0.8; }
-  .user-details h3 { font-size: 16px; font-weight: 700; }
-
-  .section-title { font-size: 16px; font-weight: 700; margin: 20px 16px 12px; color: var(--dark); }
-
-  /* QUICK LINKS GRID */
+  
+  .section-title { font-size: 16px; font-weight: 700; margin: 20px 16px 12px; }
   .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 16px; }
   .grid-item {
     background: #fff; padding: 18px 10px; border-radius: 12px;
-    text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer;
   }
   .grid-item i { font-size: 22px; color: #2b5b84; margin-bottom: 8px; }
   .grid-item span { display: block; font-size: 12px; font-weight: 600; color: #4b5563; }
@@ -43,35 +63,91 @@
 
 <body>
 
-<div class="phlebo-header">
-  <div class="user-info">
-    <img src="https://via.placeholder.com/44" id="phleboPic" class="user-avatar" alt="Avatar">
-    <div class="user-details">
-      <h4>Welcome ,</h4>
-      <h3 id="phleboName">Phlebo Officer</h3>
+<!-- 1. LOGIN SCREEN -->
+<div class="login-container" id="loginView">
+  <img src="1000531193.png" class="logo-img" alt="Logo" onerror="this.src='https://via.placeholder.com/45'">
+  <div class="brand-title">Health Space</div>
+  <div class="brand-sub">Phlebo App</div>
+
+  <div class="form-group">
+    <input type="tel" id="loginMobile" class="form-control" placeholder="Mobile Number (e.g. 7387187467)">
+  </div>
+  <div class="form-group">
+    <input type="password" id="loginPass" class="form-control" placeholder="Password (Optional)">
+  </div>
+  <button class="btn-login" onclick="phleboLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+</div>
+
+<!-- 2. DASHBOARD SCREEN -->
+<div id="dashboardView">
+  <div class="phlebo-header">
+    <div class="user-info">
+      <img src="https://via.placeholder.com/44" id="phleboPic" class="user-avatar" alt="Avatar">
+      <div>
+        <h4 style="font-size: 12px; opacity:0.8;">Welcome ,</h4>
+        <h3 id="phleboName" style="font-size:16px;">Phlebo Officer</h3>
+      </div>
     </div>
+    <button onclick="logout()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer;"><i class="fa-solid fa-power-off"></i></button>
+  </div>
+
+  <h3 class="section-title">Quick Links</h3>
+  <div class="grid-container">
+    <div class="grid-item"><i class="fa-solid fa-calendar-minus"></i><span>Leave</span></div>
+    <div class="grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Orders</span></div>
+    <div class="grid-item"><i class="fa-solid fa-square-check"></i><span>Served</span></div>
+    <div class="grid-item"><i class="fa-solid fa-network-wired"></i><span>Hub</span></div>
+    <div class="grid-item"><i class="fa-solid fa-bars-staggered"></i><span>Lead</span></div>
+    <div class="grid-item"><i class="fa-solid fa-truck-ramp-box"></i><span>Pick Order</span></div>
+  </div>
+
+  <h3 class="section-title">Others</h3>
+  <div class="grid-container">
+    <div class="grid-item"><i class="fa-solid fa-envelope"></i><span>HCW Letter</span></div>
+    <div class="grid-item"><i class="fa-solid fa-asterisk"></i><span>Password</span></div>
+    <div class="grid-item"><i class="fa-solid fa-comment-dots"></i><span>Feedback</span></div>
+    <div class="grid-item"><i class="fa-solid fa-circle-play"></i><span>Video</span></div>
+    <div class="grid-item"><i class="fa-solid fa-certificate"></i><span>Certificate</span></div>
+    <div class="grid-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Logout</span></div>
   </div>
 </div>
 
-<h3 class="section-title">Quick Links</h3>
-<div class="grid-container">
-  <div class="grid-item"><i class="fa-solid fa-calendar-minus"></i><span>Leave</span></div>
-  <div class="grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Orders</span></div>
-  <div class="grid-item"><i class="fa-solid fa-square-check"></i><span>Served</span></div>
-  <div class="grid-item"><i class="fa-solid fa-network-wired"></i><span>Hub</span></div>
-  <div class="grid-item"><i class="fa-solid fa-bars-staggered"></i><span>Lead</span></div>
-  <div class="grid-item"><i class="fa-solid fa-truck-ramp-box"></i><span>Pick Order</span></div>
-</div>
+<script>
+const API = "https://script.google.com/macros/s/AKfycbze0YahBu--60tTj1o2OrczXfZzL-EC56hRGWn6IAHy-U9t8-OS--yjbIzA7iy4L5uc/exec";
 
-<h3 class="section-title">Others</h3>
-<div class="grid-container">
-  <div class="grid-item"><i class="fa-solid fa-envelope"></i><span>HCW Letter</span></div>
-  <div class="grid-item"><i class="fa-solid fa-asterisk"></i><span>Password</span></div>
-  <div class="grid-item"><i class="fa-solid fa-comment-dots"></i><span>Feedback</span></div>
-  <div class="grid-item"><i class="fa-solid fa-circle-play"></i><span>Video</span></div>
-  <div class="grid-item"><i class="fa-solid fa-certificate"></i><span>Certificate</span></div>
-  <div class="grid-item" onclick="location.reload()"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Logout</span></div>
-</div>
+function phleboLogin() {
+  let inputMobile = document.getElementById("loginMobile").value.trim();
+  if(!inputMobile) return alert("कृपया मोबाईल नंबर टाका!");
+
+  // Google Sheet मधून Phlebos डेटा चेक करणे
+  fetch(API + "?action=phlebos")
+    .then(res => res.json())
+    .then(data => {
+      let phleboList = data.phlebos || [];
+      // कॉलम 3 मध्ये Mobile नंबर असतो (Timestamp, Name, Email, Mobile, PhotoURL)
+      let found = phleboList.find(p => String(p[3]).trim() === inputMobile);
+
+      if (found) {
+        document.getElementById("phleboName").innerText = found[1];
+        if(found[4]) document.getElementById("phleboPic").src = found[4];
+        
+        document.getElementById("loginView").style.display = "none";
+        document.getElementById("dashboardView").style.display = "block";
+      } else {
+        alert("मोबाईल नंबर रजिस्टर नाहीये! Admin Portal वरून आधी Phlebo ॲड करा.");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("कनेक्शन एरर! कृपया इंटरनेट किंवा Apps Script URL तपासा.");
+    });
+}
+
+function logout() {
+  document.getElementById("loginView").style.display = "block";
+  document.getElementById("dashboardView").style.display = "none";
+}
+</script>
 
 </body>
 </html>
