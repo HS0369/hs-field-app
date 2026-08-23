@@ -1,153 +1,228 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HealthSpace - Phlebo Login</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthSpace - Field App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #1A365D;
+            --accent-blue: #0088CC;
+            --bg-gray: #F4F7FA;
+        }
+        body { background-color: var(--bg-gray); font-family: 'Segoe UI', sans-serif; padding-bottom: 30px; }
+        
+        /* HEADER BAR */
+        .app-header {
+            background: linear-gradient(135deg, #1A365D, #0088CC);
+            color: white; padding: 20px; border-radius: 0 0 20px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .avatar-icon {
+            width: 45px; height: 45px; background: rgba(255,255,255,0.2);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: white;
+        }
+        
+        /* QUICK LINKS GRID */
+        .section-title { font-size: 16px; font-weight: 700; color: #4A5568; margin: 20px 15px 10px; }
+        .grid-container {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 15px;
+        }
+        .grid-card {
+            background: white; border-radius: 12px; padding: 18px 10px; text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; transition: 0.2s;
+            border: 1px solid #E2E8F0;
+        }
+        .grid-card:active { transform: scale(0.96); background: #EBF8FF; }
+        .grid-card i { font-size: 24px; color: var(--accent-blue); margin-bottom: 8px; }
+        .grid-card span { display: block; font-size: 13px; font-weight: 600; color: #2D3748; }
 
-<style>
-  :root {
-    --primary: #0088cc;
-    --bg-light: #f4f8fb;
-    --dark-blue: #1c2b36;
-    --sub: #667788;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-  body { background: var(--bg-light); color: var(--dark-blue); }
-
-  /* LOGIN BOX */
-  .login-container {
-    max-width: 400px; margin: 60px auto 20px; padding: 30px 24px;
-    background: #fff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    text-align: center;
-  }
-  .logo-img { height: 45px; margin-bottom: 12px; }
-  .brand-title { font-size: 22px; font-weight: 700; color: #1c2b36; }
-  .brand-sub { font-size: 13px; color: var(--sub); margin-bottom: 28px; }
-
-  .form-group { margin-bottom: 16px; text-align: left; }
-  .form-control {
-    width: 100%; padding: 14px 16px; border-radius: 12px;
-    border: 1px solid #e0e7ff; background: #f8fafc; font-size: 14px; outline: none;
-  }
-  .form-control:focus { border-color: var(--primary); background: #fff; }
-
-  .btn-login {
-    width: 100%; background: var(--primary); color: #fff; padding: 14px;
-    border-radius: 12px; border: none; font-size: 15px; font-weight: 700;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
-  }
-
-  /* DASHBOARD SECTION */
-  #dashboardView { display: none; }
-  .phlebo-header {
-    background: #2b5b84; color: #fff; padding: 18px 16px;
-    display: flex; justify-content: space-between; align-items: center;
-    border-radius: 0 0 20px 20px;
-  }
-  .user-info { display: flex; align-items: center; gap: 12px; }
-  .user-avatar { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-  
-  .section-title { font-size: 16px; font-weight: 700; margin: 20px 16px 12px; }
-  .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 16px; }
-  .grid-item {
-    background: #fff; padding: 18px 10px; border-radius: 12px;
-    text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer;
-  }
-  .grid-item i { font-size: 22px; color: #2b5b84; margin-bottom: 8px; }
-  .grid-item span { display: block; font-size: 12px; font-weight: 600; color: #4b5563; }
-</style>
+        /* ORDERS LIST VIEW */
+        .view-section { display: none; padding: 0 15px; }
+        .view-section.active { display: block; }
+        
+        .order-card {
+            background: white; border-radius: 14px; padding: 16px; margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent-blue);
+        }
+        .order-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; }
+        .badge-slot { background: #EBF8FF; color: var(--accent-blue); font-size: 11px; padding: 4px 8px; border-radius: 6px; }
+        .order-detail { font-size: 13px; color: #4A5568; margin-top: 6px; }
+        .order-detail i { width: 18px; color: var(--accent-blue); }
+        .action-btns { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-call { background: #22C55E; color: white; border: none; border-radius: 8px; flex: 1; padding: 8px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; }
+        .btn-wa { background: #25D366; color: white; border: none; border-radius: 8px; flex: 1; padding: 8px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; }
+        
+        .back-btn { background: none; border: none; color: white; font-size: 18px; margin-right: 10px; }
+    </style>
 </head>
-
 <body>
 
-<!-- 1. LOGIN SCREEN -->
-<div class="login-container" id="loginView">
-  <img src="1000531193.png" class="logo-img" alt="Logo" onerror="this.src='https://via.placeholder.com/45'">
-  <div class="brand-title">Health Space</div>
-  <div class="brand-sub">Phlebo App</div>
-
-  <div class="form-group">
-    <input type="tel" id="loginMobile" class="form-control" placeholder="Mobile Number (e.g. 7387187467)">
-  </div>
-  <div class="form-group">
-    <input type="password" id="loginPass" class="form-control" placeholder="Password (Optional)">
-  </div>
-  <button class="btn-login" onclick="phleboLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
-</div>
-
-<!-- 2. DASHBOARD SCREEN -->
-<div id="dashboardView">
-  <div class="phlebo-header">
-    <div class="user-info">
-      <img src="https://via.placeholder.com/44" id="phleboPic" class="user-avatar" alt="Avatar">
-      <div>
-        <h4 style="font-size: 12px; opacity:0.8;">Welcome ,</h4>
-        <h3 id="phleboName" style="font-size:16px;">Phlebo Officer</h3>
-      </div>
+    <!-- HEADER -->
+    <div class="app-header">
+        <div class="user-info">
+            <button class="back-btn" id="btnBack" style="display:none;" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="avatar-icon"><i class="fa-solid fa-user-doctor"></i></div>
+            <div>
+                <small style="opacity: 0.8; font-size:11px;">Welcome,</small>
+                <h6 class="m-0" style="font-weight: 700;" id="headerTitle">Pankaj (Field Officer)</h6>
+            </div>
+        </div>
+        <i class="fa-solid fa-power-off" style="font-size: 18px; cursor: pointer;"></i>
     </div>
-    <button onclick="logout()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer;"><i class="fa-solid fa-power-off"></i></button>
-  </div>
 
-  <h3 class="section-title">Quick Links</h3>
-  <div class="grid-container">
-    <div class="grid-item"><i class="fa-solid fa-calendar-minus"></i><span>Leave</span></div>
-    <div class="grid-item"><i class="fa-solid fa-pen-to-square"></i><span>Orders</span></div>
-    <div class="grid-item"><i class="fa-solid fa-square-check"></i><span>Served</span></div>
-    <div class="grid-item"><i class="fa-solid fa-network-wired"></i><span>Hub</span></div>
-    <div class="grid-item"><i class="fa-solid fa-bars-staggered"></i><span>Lead</span></div>
-    <div class="grid-item"><i class="fa-solid fa-truck-ramp-box"></i><span>Pick Order</span></div>
-  </div>
+    <!-- HOME VIEW (GRID DASHBOARD) -->
+    <div id="homeView" class="view-section active">
+        <div class="section-title">Quick Links</div>
+        <div class="grid-container">
+            <div class="grid-card" onclick="loadOrdersView()">
+                <i class="fa-solid fa-file-pen"></i>
+                <span>Orders</span>
+            </div>
+            <div class="grid-card">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>Served</span>
+            </div>
+            <div class="grid-card">
+                <i class="fa-solid fa-calendar-minus"></i>
+                <span>Leave</span>
+            </div>
+            <div class="grid-card">
+                <i class="fa-solid fa-sitemap"></i>
+                <span>Hub</span>
+            </div>
+            <div class="grid-card">
+                <i class="fa-solid fa-bars-staggered"></i>
+                <span>Lead</span>
+            </div>
+            <div class="grid-card">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+                <span>Pick Order</span>
+            </div>
+        </div>
 
-  <h3 class="section-title">Others</h3>
-  <div class="grid-container">
-    <div class="grid-item"><i class="fa-solid fa-envelope"></i><span>HCW Letter</span></div>
-    <div class="grid-item"><i class="fa-solid fa-asterisk"></i><span>Password</span></div>
-    <div class="grid-item"><i class="fa-solid fa-comment-dots"></i><span>Feedback</span></div>
-    <div class="grid-item"><i class="fa-solid fa-circle-play"></i><span>Video</span></div>
-    <div class="grid-item"><i class="fa-solid fa-certificate"></i><span>Certificate</span></div>
-    <div class="grid-item" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Logout</span></div>
-  </div>
-</div>
+        <div class="section-title">Others</div>
+        <div class="grid-container">
+            <div class="grid-card">
+                <i class="fa-solid fa-envelope"></i>
+                <span>HCW Letter</span>
+            </div>
+            <div class="grid-card">
+                <i class="fa-solid fa-asterisk"></i>
+                <span>Password</span>
+            </div>
+            <div class="grid-card">
+                <i class="fa-solid fa-comments"></i>
+                <span>Feedback</span>
+            </div>
+        </div>
+    </div>
 
-<script>
-const API = "https://script.google.com/macros/s/AKfycbze0YahBu--60tTj1o2OrczXfZzL-EC56hRGWn6IAHy-U9t8-OS--yjbIzA7iy4L5uc/exec";
-
-function phleboLogin() {
-  let inputMobile = document.getElementById("loginMobile").value.trim();
-  if(!inputMobile) return alert("कृपया मोबाईल नंबर टाका!");
-
-  // Google Sheet मधून Phlebos डेटा चेक करणे
-  fetch(API + "?action=phlebos")
-    .then(res => res.json())
-    .then(data => {
-      let phleboList = data.phlebos || [];
-      // कॉलम 3 मध्ये Mobile नंबर असतो (Timestamp, Name, Email, Mobile, PhotoURL)
-      let found = phleboList.find(p => String(p[3]).trim() === inputMobile);
-
-      if (found) {
-        document.getElementById("phleboName").innerText = found[1];
-        if(found[4]) document.getElementById("phleboPic").src = found[4];
+    <!-- ORDERS VIEW -->
+    <div id="ordersView" class="view-section">
+        <div class="d-flex justify-content-between align-items-center my-3">
+            <h6 class="m-0 font-weight-bold" style="color: #2D3748;">Assigned Home Collections</h6>
+            <button class="btn btn-sm btn-outline-primary" onclick="fetchOrders()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
         
-        document.getElementById("loginView").style.display = "none";
-        document.getElementById("dashboardView").style.display = "block";
-      } else {
-        alert("मोबाईल नंबर रजिस्टर नाहीये! Admin Portal वरून आधी Phlebo ॲड करा.");
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("कनेक्शन एरर! कृपया इंटरनेट किंवा Apps Script URL तपासा.");
-    });
-}
+        <div id="ordersList">
+            <div class="text-center text-muted py-4">
+                <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
+                <p>Loading orders from Google Sheet...</p>
+            </div>
+        </div>
+    </div>
 
-function logout() {
-  document.getElementById("loginView").style.display = "block";
-  document.getElementById("dashboardView").style.display = "none";
-}
-</script>
+    <script>
+        // तुमची Apps Script Web App URL
+        const API_URL = "https://script.google.com/macros/s/AKfycbze0YahBu--60tTj1o2OrczXfZzL-EC56hRGWn6IAHy-U9t8-OS--yjbIzA7iy4L5uc/exec";
 
+        function showHome() {
+            document.getElementById('homeView').classList.add('active');
+            document.getElementById('ordersView').classList.remove('active');
+            document.getElementById('btnBack').style.display = 'none';
+            document.getElementById('headerTitle').innerText = "Pankaj (Field Officer)";
+        }
+
+        function loadOrdersView() {
+            document.getElementById('homeView').classList.remove('active');
+            document.getElementById('ordersView').classList.add('active');
+            document.getElementById('btnBack').style.display = 'inline-block';
+            document.getElementById('headerTitle').innerText = "Today's Orders";
+            fetchOrders();
+        }
+
+        async function fetchOrders() {
+            const container = document.getElementById('ordersList');
+            container.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
+                    <p>Fetching Orders...</p>
+                </div>`;
+
+            try {
+                const response = await fetch(API_URL + "?action=orders");
+                const data = await response.json();
+                
+                if (data.orders && data.orders.length > 0) {
+                    renderOrders(data.orders);
+                } else {
+                    container.innerHTML = `<div class="text-center text-muted py-4"><i class="fa-solid fa-box-open fa-2x mb-2"></i><p>No Pending Orders Found!</p></div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                // जर API कनेक्शन फेल झाले तर दाखवण्यासाठी Sample Data
+                renderOrders([
+                    ["2026-03-20", "Rahul Sharma", "9876543210", "Flat 302, Indira Nagar, Nashik", "HealthSpace Maximum", "No", "6:00 AM - 8:00 AM", "Pending"],
+                    ["2026-03-20", "Anita Patil", "9123456789", "Plot 12, Gangapur Road, Nashik", "TruHealth Active", "Yes", "8:00 AM - 10:00 AM", "Pending"]
+                ]);
+            }
+        }
+
+        function renderOrders(orders) {
+            const container = document.getElementById('ordersList');
+            container.innerHTML = '';
+
+            orders.forEach((ord, index) => {
+                // Header सोडणे जर शीटमधील Header आला असेल
+                if (ord[1] === "Patient Name") return;
+
+                const date = ord[0] ? new Date(ord[0]).toLocaleDateString() : 'Today';
+                const name = ord[1] || 'Patient';
+                const mobile = ord[2] || '';
+                const address = ord[3] || 'Nashik Address';
+                const pkg = ord[4] || 'Package';
+                const isOnePlusOne = ord[5] === "Yes" ? "<span class='badge bg-success ms-1'>1+1 Offer</span>" : "";
+                const slot = ord[6] || 'Morning Slot';
+
+                const cardHtml = `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <span><i class="fa-solid fa-user-check me-1 text-primary"></i> ${name}</span>
+                            <span class="badge-slot"><i class="fa-regular fa-clock me-1"></i> ${slot}</span>
+                        </div>
+                        <div class="order-detail mt-2">
+                            <i class="fa-solid fa-flask"></i> <b>Package:</b> ${pkg} ${isOnePlusOne}
+                        </div>
+                        <div class="order-detail">
+                            <i class="fa-solid fa-location-dot"></i> <b>Address:</b> ${address}
+                        </div>
+                        <div class="order-detail">
+                            <i class="fa-solid fa-phone"></i> <b>Mobile:</b> ${mobile}
+                        </div>
+                        <div class="action-btns">
+                            <a href="tel:${mobile}" class="btn-call"><i class="fa-solid fa-phone me-1"></i> Call Patient</a>
+                            <a href="https://wa.me/91${mobile}?text=Hello%20${encodeURIComponent(name)},%20I%20am%20from%20HealthSpace%20for%20your%20Home%20Sample%20Collection." target="_blank" class="btn-wa"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            });
+        }
+    </script>
 </body>
 </html>
