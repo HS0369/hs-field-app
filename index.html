@@ -7,278 +7,81 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --hs-blue: #0098DA;
-            --hs-orange: #FF5722;
-            --hs-dark: #1E293B;
-            --bg-light: #F4F7FA;
-        }
-        body { background-color: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 30px; }
-        
-        /* HEADER BAR */
-        .app-header {
-            background: #ffffff;
-            color: var(--hs-dark); padding: 15px 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 3px solid var(--hs-blue);
-        }
-        .app-logo { height: 38px; }
-        .user-profile-box { display: flex; align-items: center; gap: 10px; }
-        .user-avatar {
-            width: 45px; height: 45px; border-radius: 50%;
-            object-fit: cover; border: 2px solid var(--hs-blue);
-            background: #e2e8f0; display: flex; align-items: center; justify-content: center;
-        }
-
-        /* SELFIE MODAL */
-        #cameraView video, #cameraView canvas { width: 100%; border-radius: 12px; }
-
-        /* GRID DASHBOARD */
-        .section-title { font-size: 15px; font-weight: 700; color: #64748B; margin: 20px 15px 10px; text-transform: uppercase; }
-        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 15px; }
-        .grid-card {
-            background: white; border-radius: 14px; padding: 16px 8px; text-align: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04); cursor: pointer; transition: 0.2s;
-            border: 1px solid #E2E8F0;
-        }
-        .grid-card:active { transform: scale(0.95); background: #E0F2FE; }
-        .grid-card i { font-size: 22px; color: var(--hs-blue); margin-bottom: 6px; }
-        .grid-card span { display: block; font-size: 12px; font-weight: 600; color: #334155; }
-
-        /* ORDERS LIST & CARDS */
-        .view-section { display: none; padding: 0 15px; }
-        .view-section.active { display: block; }
-        
-        .order-card {
-            background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid var(--hs-blue);
-        }
-        .order-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 16px; color: #0F172A; }
-        .badge-slot { background: #E0F2FE; color: var(--hs-blue); font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
-        .order-info { font-size: 13px; color: #475569; margin-top: 6px; }
-        .order-info i { width: 20px; color: var(--hs-blue); }
-
-        .btn-call { background: #22C55E; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; }
-        .btn-wa { background: #25D366; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; }
-        .btn-upload { background: var(--hs-blue); color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; width: 100%; }
-        
-        .back-btn { background: none; border: none; font-size: 18px; color: var(--hs-dark); margin-right: 10px; }
+        :root { --hs-blue: #0098DA; --bg: #F1F5F9; }
+        body { background-color: var(--bg); font-family: system-ui, sans-serif; padding-bottom: 30px; }
+        .header { background: #ffffff; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; }
+        .app-logo { height: 32px; }
+        .order-card { background: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .badge-slot { background: #E0F2FE; color: var(--hs-blue); font-weight: 600; padding: 4px 8px; border-radius: 6px; font-size: 11px; }
+        .btn-call { background: #22C55E; color: white; border-radius: 6px; padding: 8px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; font-size: 13px; }
+        .btn-wa { background: #25D366; color: white; border-radius: 6px; padding: 8px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <!-- APP HEADER -->
-    <div class="app-header">
-        <div class="d-flex align-items-center">
-            <button class="back-btn" id="btnBack" style="display:none;" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i></button>
-            <img src="1000531193.png" alt="HealthSpace" class="app-logo" onerror="this.src='https://via.placeholder.com/120x40?text=HealthSpace'">
-        </div>
-        <div class="user-profile-box" onclick="triggerSelfieModal()">
-            <div id="avatarContainer">
-                <div class="user-avatar" id="userAvatar"><i class="fa-solid fa-camera text-secondary"></i></div>
-            </div>
-            <div>
-                <h6 class="m-0" style="font-weight: 700; font-size: 14px;" id="phleboName">Pankaj (Phlebo)</h6>
-                <small class="text-success" style="font-size: 11px;"><i class="fa-solid fa-circle-check"></i> Attendance Taken</small>
-            </div>
-        </div>
+    <div class="header">
+        <img src="1000531193.png" alt="HealthSpace" class="app-logo" onerror="this.src='https://via.placeholder.com/100x30?text=HealthSpace'">
+        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="fetchOrders()"><i class="fa-solid fa-arrows-rotate me-1"></i> Sync</button>
     </div>
 
-    <!-- HOME DASHBOARD -->
-    <div id="homeView" class="view-section active">
-        <div class="section-title">Quick Links</div>
-        <div class="grid-container">
-            <div class="grid-card" onclick="loadOrdersView()">
-                <i class="fa-solid fa-clipboard-list"></i>
-                <span>Orders</span>
-            </div>
-            <div class="grid-card">
-                <i class="fa-solid fa-square-check"></i>
-                <span>Served</span>
-            </div>
-            <div class="grid-card">
-                <i class="fa-solid fa-user-clock"></i>
-                <span>Leave</span>
-            </div>
-            <div class="grid-card">
-                <i class="fa-solid fa-building-user"></i>
-                <span>Hub</span>
-            </div>
-            <div class="grid-card">
-                <i class="fa-solid fa-bullhorn"></i>
-                <span>Lead</span>
-            </div>
-            <div class="grid-card">
-                <i class="fa-solid fa-box-archive"></i>
-                <span>Pick Order</span>
-            </div>
-        </div>
-
-        <div class="section-title">Others</div>
-        <div class="grid-container">
-            <div class="grid-card">
-                <i class="fa-solid fa-file-signature"></i>
-                <span>HCW Letter</span>
-            </div>
-            <div class="grid-card">
-                <i class="fa-solid fa-key"></i>
-                <span>Password</span>
-            </div>
-            <div class="grid-card">
-                <i class="fa-solid fa-comment-dots"></i>
-                <span>Feedback</span>
-            </div>
-        </div>
+    <div class="container my-3">
+        <h6 class="fw-bold text-muted mb-3">ASSIGNED ORDERS</h6>
+        <div id="ordersList"></div>
     </div>
 
-    <!-- ORDERS VIEW -->
-    <div id="ordersView" class="view-section">
-        <div class="d-flex justify-content-between align-items-center my-3">
-            <h6 class="m-0 font-weight-bold text-dark">Today's Assigned Collections</h6>
-            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="fetchOrders()"><i class="fa-solid fa-arrows-rotate"></i> Sync</button>
-        </div>
-        
-        <div id="ordersList">
-            <!-- Dynamic Orders Inserted Here -->
-        </div>
-    </div>
-
-    <!-- SELFIE ATTENDANCE MODAL -->
-    <div class="modal fade" id="selfieModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa-solid fa-camera me-2"></i>Phlebo Login Selfie</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center" id="cameraView">
-                    <video id="video" autoplay playsinline></video>
-                    <canvas id="canvas" style="display:none;"></canvas>
-                    <button class="btn btn-primary mt-3 w-100 rounded-pill" onclick="captureSelfie()"><i class="fa-solid fa-circle-dot me-1"></i> Capture & Save Selfie</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbze0YahBu--60tTj1o2OrczXfZzL-EC56hRGWn6IAHy-U9t8-OS--yjbIzA7iy4L5uc/exec";
-
-        function showHome() {
-            document.getElementById('homeView').classList.add('active');
-            document.getElementById('ordersView').classList.remove('active');
-            document.getElementById('btnBack').style.display = 'none';
-        }
-
-        function loadOrdersView() {
-            document.getElementById('homeView').classList.remove('active');
-            document.getElementById('ordersView').classList.add('active');
-            document.getElementById('btnBack').style.display = 'inline-block';
-            fetchOrders();
-        }
+        const API_URL = "YOUR_SCRIPT_DEPLOYMENT_URL";
 
         async function fetchOrders() {
-            const container = document.getElementById('ordersList');
-            container.innerHTML = `
-                <div class="text-center text-muted py-5">
-                    <i class="fa-solid fa-spinner fa-spin fa-2x mb-2 text-primary"></i>
-                    <p>Loading Patient Orders...</p>
-                </div>`;
+            const list = document.getElementById('ordersList');
+            list.innerHTML = `<div class="text-center py-5"><i class="fa-solid fa-spinner fa-spin text-primary fa-2x mb-2"></i><p class="text-muted small">Loading Orders...</p></div>`;
 
             try {
-                const response = await fetch(API_URL + "?action=orders");
-                const data = await response.json();
-                if (data.orders && data.orders.length > 0) {
+                const res = await fetch(API_URL + "?action=orders");
+                const data = await res.json();
+
+                if (data.status === "success" && data.orders.length > 0) {
                     renderOrders(data.orders);
                 } else {
-                    renderFallbackOrders();
+                    list.innerHTML = `<div class="text-center py-5 text-muted"><p>No orders found in Sheet.</p></div>`;
                 }
-            } catch (error) {
-                renderFallbackOrders();
+            } catch (err) {
+                list.innerHTML = `<div class="text-center py-5 text-danger"><p>Failed to sync orders.</p></div>`;
             }
         }
 
-        function renderFallbackOrders() {
-            renderOrders([
-                ["2026-03-20", "Aarti Kalgude", "9096522533", "Flat 9, Vandana Park, Indira Nagar, Nashik", "HealthSpace Maximum", "Yes", "6:00 AM - 8:00 AM"],
-                ["2026-03-20", "Rahul Patil", "9876543210", "Plot 14, Gangapur Road, Nashik", "Diabetes Care Package", "No", "8:00 AM - 10:00 AM"]
-            ]);
-        }
-
         function renderOrders(orders) {
-            const container = document.getElementById('ordersList');
-            container.innerHTML = '';
+            const list = document.getElementById('ordersList');
+            list.innerHTML = '';
 
-            orders.forEach((ord) => {
-                if (!ord[1] || ord[1] === "Patient Name" || ord[1] === "Name") return;
+            orders.slice().reverse().forEach(row => {
+                const date = row[0] ? new Date(row[0]).toLocaleDateString() : 'Today';
+                const name = row[1] || 'Patient';
+                const mobile = row[2] || '';
+                const address = row[3] || 'No Address';
+                const pkg = row[4] || 'Package';
+                const slot = row[5] || 'Slot';
 
-                const name = ord[1] || "Patient";
-                const mobile = ord[2] || "";
-                const address = ord[3] || "Address Not Specified";
-                const packageTitle = ord[4] || "Checkup Package";
-                const slot = ord[6] || "Morning Slot";
-
-                const cardHTML = `
+                list.innerHTML += `
                     <div class="order-card">
-                        <div class="order-header">
-                            <span><i class="fa-solid fa-user me-1 text-primary"></i> ${name}</span>
-                            <span class="badge-slot"><i class="fa-regular fa-clock me-1"></i> ${slot}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold text-dark">${name}</span>
+                            <span class="badge-slot">${slot}</span>
                         </div>
-                        <div class="order-info mt-2">
-                            <i class="fa-solid fa-box text-primary"></i> <b>Package:</b> ${packageTitle}
-                        </div>
-                        <div class="order-info">
-                            <i class="fa-solid fa-location-dot text-danger"></i> <b>Address:</b> ${address}
-                        </div>
-                        <div class="order-info">
-                            <i class="fa-solid fa-phone text-success"></i> <b>Mobile:</b> ${mobile}
-                        </div>
-                        
-                        <div class="d-flex gap-2 mt-3">
-                            <a href="tel:${mobile}" class="btn-call"><i class="fa-solid fa-phone me-1"></i> Call Patient</a>
+                        <div class="small text-muted mb-1"><i class="fa-solid fa-flask text-primary me-2"></i><b>Package:</b> ${pkg}</div>
+                        <div class="small text-muted mb-1"><i class="fa-solid fa-location-dot text-danger me-2"></i><b>Address:</b> ${address}</div>
+                        <div class="small text-muted mb-3"><i class="fa-solid fa-calendar text-secondary me-2"></i><b>Date:</b> ${date}</div>
+
+                        <div class="d-flex gap-2">
+                            <a href="tel:${mobile}" class="btn-call"><i class="fa-solid fa-phone me-1"></i> Call</a>
                             <a href="https://wa.me/91${mobile}?text=Hello%20${encodeURIComponent(name)},%20I%20am%20from%20HealthSpace%20for%20your%20sample%20collection." target="_blank" class="btn-wa"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
-                        </div>
-                        <div class="mt-2">
-                            <input type="file" id="file-${mobile}" accept="image/*" style="display:none;" onchange="uploadOrderPhoto('${mobile}')">
-                            <button class="btn-upload" onclick="document.getElementById('file-${mobile}').click()"><i class="fa-solid fa-camera me-1"></i> Upload Sample Photo</button>
                         </div>
                     </div>
                 `;
-                container.innerHTML += cardHTML;
             });
         }
 
-        // CAMERA & SELFIE ATTENDANCE MODULE
-        let selfieModal;
-        function triggerSelfieModal() {
-            selfieModal = new bootstrap.Modal(document.getElementById('selfieModal'));
-            selfieModal.show();
-            navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-                document.getElementById('video').srcObject = stream;
-            });
-        }
-
-        function captureSelfie() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const imageData = canvas.toDataURL('image/png');
-            document.getElementById('avatarContainer').innerHTML = `<img src="${imageData}" class="user-avatar">`;
-            
-            // Turn off camera stream
-            video.srcObject.getTracks().forEach(track => track.stop());
-            selfieModal.hide();
-            alert("Selfie Attendance Recorded Successfully!");
-        }
-
-        function uploadOrderPhoto(mobile) {
-            alert("Sample Photo uploaded successfully for Mobile: " + mobile);
-        }
+        fetchOrders();
     </script>
 </body>
 </html>
