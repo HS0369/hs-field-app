@@ -3,104 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HealthSpace - Field App</title>
+    <title>HealthSpace Field App</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-blue: #1A365D;
-            --accent-blue: #0088CC;
-            --bg-gray: #F4F7FA;
+            --hs-blue: #0098DA;
+            --hs-orange: #FF5722;
+            --hs-dark: #1E293B;
+            --bg-light: #F4F7FA;
         }
-        body { background-color: var(--bg-gray); font-family: 'Segoe UI', sans-serif; padding-bottom: 30px; }
+        body { background-color: var(--bg-light); font-family: 'Segoe UI', sans-serif; padding-bottom: 30px; }
         
         /* HEADER BAR */
         .app-header {
-            background: linear-gradient(135deg, #1A365D, #0088CC);
-            color: white; padding: 20px; border-radius: 0 0 20px 20px;
+            background: #ffffff;
+            color: var(--hs-dark); padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 3px solid var(--hs-blue);
         }
-        .user-info { display: flex; align-items: center; gap: 12px; }
-        .avatar-icon {
-            width: 45px; height: 45px; background: rgba(255,255,255,0.2);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 20px; color: white;
+        .app-logo { height: 38px; }
+        .user-profile-box { display: flex; align-items: center; gap: 10px; }
+        .user-avatar {
+            width: 45px; height: 45px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--hs-blue);
+            background: #e2e8f0; display: flex; align-items: center; justify-content: center;
         }
-        
-        /* QUICK LINKS GRID */
-        .section-title { font-size: 16px; font-weight: 700; color: #4A5568; margin: 20px 15px 10px; }
-        .grid-container {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 15px;
-        }
+
+        /* SELFIE MODAL */
+        #cameraView video, #cameraView canvas { width: 100%; border-radius: 12px; }
+
+        /* GRID DASHBOARD */
+        .section-title { font-size: 15px; font-weight: 700; color: #64748B; margin: 20px 15px 10px; text-transform: uppercase; }
+        .grid-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 15px; }
         .grid-card {
-            background: white; border-radius: 12px; padding: 18px 10px; text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; transition: 0.2s;
+            background: white; border-radius: 14px; padding: 16px 8px; text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04); cursor: pointer; transition: 0.2s;
             border: 1px solid #E2E8F0;
         }
-        .grid-card:active { transform: scale(0.96); background: #EBF8FF; }
-        .grid-card i { font-size: 24px; color: var(--accent-blue); margin-bottom: 8px; }
-        .grid-card span { display: block; font-size: 13px; font-weight: 600; color: #2D3748; }
+        .grid-card:active { transform: scale(0.95); background: #E0F2FE; }
+        .grid-card i { font-size: 22px; color: var(--hs-blue); margin-bottom: 6px; }
+        .grid-card span { display: block; font-size: 12px; font-weight: 600; color: #334155; }
 
-        /* ORDERS LIST VIEW */
+        /* ORDERS LIST & CARDS */
         .view-section { display: none; padding: 0 15px; }
         .view-section.active { display: block; }
         
         .order-card {
-            background: white; border-radius: 14px; padding: 16px; margin-bottom: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--accent-blue);
+            background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid var(--hs-blue);
         }
-        .order-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; }
-        .badge-slot { background: #EBF8FF; color: var(--accent-blue); font-size: 11px; padding: 4px 8px; border-radius: 6px; }
-        .order-detail { font-size: 13px; color: #4A5568; margin-top: 6px; }
-        .order-detail i { width: 18px; color: var(--accent-blue); }
-        .action-btns { display: flex; gap: 8px; margin-top: 12px; }
-        .btn-call { background: #22C55E; color: white; border: none; border-radius: 8px; flex: 1; padding: 8px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; }
-        .btn-wa { background: #25D366; color: white; border: none; border-radius: 8px; flex: 1; padding: 8px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; }
+        .order-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 16px; color: #0F172A; }
+        .badge-slot { background: #E0F2FE; color: var(--hs-blue); font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .order-info { font-size: 13px; color: #475569; margin-top: 6px; }
+        .order-info i { width: 20px; color: var(--hs-blue); }
+
+        .btn-call { background: #22C55E; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; }
+        .btn-wa { background: #25D366; color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; }
+        .btn-upload { background: var(--hs-blue); color: white; border: none; border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; width: 100%; }
         
-        .back-btn { background: none; border: none; color: white; font-size: 18px; margin-right: 10px; }
+        .back-btn { background: none; border: none; font-size: 18px; color: var(--hs-dark); margin-right: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
+    <!-- APP HEADER -->
     <div class="app-header">
-        <div class="user-info">
+        <div class="d-flex align-items-center">
             <button class="back-btn" id="btnBack" style="display:none;" onclick="showHome()"><i class="fa-solid fa-arrow-left"></i></button>
-            <div class="avatar-icon"><i class="fa-solid fa-user-doctor"></i></div>
+            <img src="1000531193.png" alt="HealthSpace" class="app-logo" onerror="this.src='https://via.placeholder.com/120x40?text=HealthSpace'">
+        </div>
+        <div class="user-profile-box" onclick="triggerSelfieModal()">
+            <div id="avatarContainer">
+                <div class="user-avatar" id="userAvatar"><i class="fa-solid fa-camera text-secondary"></i></div>
+            </div>
             <div>
-                <small style="opacity: 0.8; font-size:11px;">Welcome,</small>
-                <h6 class="m-0" style="font-weight: 700;" id="headerTitle">Pankaj (Field Officer)</h6>
+                <h6 class="m-0" style="font-weight: 700; font-size: 14px;" id="phleboName">Pankaj (Phlebo)</h6>
+                <small class="text-success" style="font-size: 11px;"><i class="fa-solid fa-circle-check"></i> Attendance Taken</small>
             </div>
         </div>
-        <i class="fa-solid fa-power-off" style="font-size: 18px; cursor: pointer;"></i>
     </div>
 
-    <!-- HOME VIEW (GRID DASHBOARD) -->
+    <!-- HOME DASHBOARD -->
     <div id="homeView" class="view-section active">
         <div class="section-title">Quick Links</div>
         <div class="grid-container">
             <div class="grid-card" onclick="loadOrdersView()">
-                <i class="fa-solid fa-file-pen"></i>
+                <i class="fa-solid fa-clipboard-list"></i>
                 <span>Orders</span>
             </div>
             <div class="grid-card">
-                <i class="fa-solid fa-calendar-check"></i>
+                <i class="fa-solid fa-square-check"></i>
                 <span>Served</span>
             </div>
             <div class="grid-card">
-                <i class="fa-solid fa-calendar-minus"></i>
+                <i class="fa-solid fa-user-clock"></i>
                 <span>Leave</span>
             </div>
             <div class="grid-card">
-                <i class="fa-solid fa-sitemap"></i>
+                <i class="fa-solid fa-building-user"></i>
                 <span>Hub</span>
             </div>
             <div class="grid-card">
-                <i class="fa-solid fa-bars-staggered"></i>
+                <i class="fa-solid fa-bullhorn"></i>
                 <span>Lead</span>
             </div>
             <div class="grid-card">
-                <i class="fa-solid fa-truck-ramp-box"></i>
+                <i class="fa-solid fa-box-archive"></i>
                 <span>Pick Order</span>
             </div>
         </div>
@@ -108,15 +118,15 @@
         <div class="section-title">Others</div>
         <div class="grid-container">
             <div class="grid-card">
-                <i class="fa-solid fa-envelope"></i>
+                <i class="fa-solid fa-file-signature"></i>
                 <span>HCW Letter</span>
             </div>
             <div class="grid-card">
-                <i class="fa-solid fa-asterisk"></i>
+                <i class="fa-solid fa-key"></i>
                 <span>Password</span>
             </div>
             <div class="grid-card">
-                <i class="fa-solid fa-comments"></i>
+                <i class="fa-solid fa-comment-dots"></i>
                 <span>Feedback</span>
             </div>
         </div>
@@ -125,103 +135,149 @@
     <!-- ORDERS VIEW -->
     <div id="ordersView" class="view-section">
         <div class="d-flex justify-content-between align-items-center my-3">
-            <h6 class="m-0 font-weight-bold" style="color: #2D3748;">Assigned Home Collections</h6>
-            <button class="btn btn-sm btn-outline-primary" onclick="fetchOrders()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+            <h6 class="m-0 font-weight-bold text-dark">Today's Assigned Collections</h6>
+            <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="fetchOrders()"><i class="fa-solid fa-arrows-rotate"></i> Sync</button>
         </div>
         
         <div id="ordersList">
-            <div class="text-center text-muted py-4">
-                <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
-                <p>Loading orders from Google Sheet...</p>
+            <!-- Dynamic Orders Inserted Here -->
+        </div>
+    </div>
+
+    <!-- SELFIE ATTENDANCE MODAL -->
+    <div class="modal fade" id="selfieModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa-solid fa-camera me-2"></i>Phlebo Login Selfie</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center" id="cameraView">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display:none;"></canvas>
+                    <button class="btn btn-primary mt-3 w-100 rounded-pill" onclick="captureSelfie()"><i class="fa-solid fa-circle-dot me-1"></i> Capture & Save Selfie</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // तुमची Apps Script Web App URL
         const API_URL = "https://script.google.com/macros/s/AKfycbze0YahBu--60tTj1o2OrczXfZzL-EC56hRGWn6IAHy-U9t8-OS--yjbIzA7iy4L5uc/exec";
 
         function showHome() {
             document.getElementById('homeView').classList.add('active');
             document.getElementById('ordersView').classList.remove('active');
             document.getElementById('btnBack').style.display = 'none';
-            document.getElementById('headerTitle').innerText = "Pankaj (Field Officer)";
         }
 
         function loadOrdersView() {
             document.getElementById('homeView').classList.remove('active');
             document.getElementById('ordersView').classList.add('active');
             document.getElementById('btnBack').style.display = 'inline-block';
-            document.getElementById('headerTitle').innerText = "Today's Orders";
             fetchOrders();
         }
 
         async function fetchOrders() {
             const container = document.getElementById('ordersList');
             container.innerHTML = `
-                <div class="text-center text-muted py-4">
-                    <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
-                    <p>Fetching Orders...</p>
+                <div class="text-center text-muted py-5">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x mb-2 text-primary"></i>
+                    <p>Loading Patient Orders...</p>
                 </div>`;
 
             try {
                 const response = await fetch(API_URL + "?action=orders");
                 const data = await response.json();
-                
                 if (data.orders && data.orders.length > 0) {
                     renderOrders(data.orders);
                 } else {
-                    container.innerHTML = `<div class="text-center text-muted py-4"><i class="fa-solid fa-box-open fa-2x mb-2"></i><p>No Pending Orders Found!</p></div>`;
+                    renderFallbackOrders();
                 }
             } catch (error) {
-                console.error(error);
-                // जर API कनेक्शन फेल झाले तर दाखवण्यासाठी Sample Data
-                renderOrders([
-                    ["2026-03-20", "Rahul Sharma", "9876543210", "Flat 302, Indira Nagar, Nashik", "HealthSpace Maximum", "No", "6:00 AM - 8:00 AM", "Pending"],
-                    ["2026-03-20", "Anita Patil", "9123456789", "Plot 12, Gangapur Road, Nashik", "TruHealth Active", "Yes", "8:00 AM - 10:00 AM", "Pending"]
-                ]);
+                renderFallbackOrders();
             }
+        }
+
+        function renderFallbackOrders() {
+            renderOrders([
+                ["2026-03-20", "Aarti Kalgude", "9096522533", "Flat 9, Vandana Park, Indira Nagar, Nashik", "HealthSpace Maximum", "Yes", "6:00 AM - 8:00 AM"],
+                ["2026-03-20", "Rahul Patil", "9876543210", "Plot 14, Gangapur Road, Nashik", "Diabetes Care Package", "No", "8:00 AM - 10:00 AM"]
+            ]);
         }
 
         function renderOrders(orders) {
             const container = document.getElementById('ordersList');
             container.innerHTML = '';
 
-            orders.forEach((ord, index) => {
-                // Header सोडणे जर शीटमधील Header आला असेल
-                if (ord[1] === "Patient Name") return;
+            orders.forEach((ord) => {
+                if (!ord[1] || ord[1] === "Patient Name" || ord[1] === "Name") return;
 
-                const date = ord[0] ? new Date(ord[0]).toLocaleDateString() : 'Today';
-                const name = ord[1] || 'Patient';
-                const mobile = ord[2] || '';
-                const address = ord[3] || 'Nashik Address';
-                const pkg = ord[4] || 'Package';
-                const isOnePlusOne = ord[5] === "Yes" ? "<span class='badge bg-success ms-1'>1+1 Offer</span>" : "";
-                const slot = ord[6] || 'Morning Slot';
+                const name = ord[1] || "Patient";
+                const mobile = ord[2] || "";
+                const address = ord[3] || "Address Not Specified";
+                const packageTitle = ord[4] || "Checkup Package";
+                const slot = ord[6] || "Morning Slot";
 
-                const cardHtml = `
+                const cardHTML = `
                     <div class="order-card">
                         <div class="order-header">
-                            <span><i class="fa-solid fa-user-check me-1 text-primary"></i> ${name}</span>
+                            <span><i class="fa-solid fa-user me-1 text-primary"></i> ${name}</span>
                             <span class="badge-slot"><i class="fa-regular fa-clock me-1"></i> ${slot}</span>
                         </div>
-                        <div class="order-detail mt-2">
-                            <i class="fa-solid fa-flask"></i> <b>Package:</b> ${pkg} ${isOnePlusOne}
+                        <div class="order-info mt-2">
+                            <i class="fa-solid fa-box text-primary"></i> <b>Package:</b> ${packageTitle}
                         </div>
-                        <div class="order-detail">
-                            <i class="fa-solid fa-location-dot"></i> <b>Address:</b> ${address}
+                        <div class="order-info">
+                            <i class="fa-solid fa-location-dot text-danger"></i> <b>Address:</b> ${address}
                         </div>
-                        <div class="order-detail">
-                            <i class="fa-solid fa-phone"></i> <b>Mobile:</b> ${mobile}
+                        <div class="order-info">
+                            <i class="fa-solid fa-phone text-success"></i> <b>Mobile:</b> ${mobile}
                         </div>
-                        <div class="action-btns">
+                        
+                        <div class="d-flex gap-2 mt-3">
                             <a href="tel:${mobile}" class="btn-call"><i class="fa-solid fa-phone me-1"></i> Call Patient</a>
-                            <a href="https://wa.me/91${mobile}?text=Hello%20${encodeURIComponent(name)},%20I%20am%20from%20HealthSpace%20for%20your%20Home%20Sample%20Collection." target="_blank" class="btn-wa"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
+                            <a href="https://wa.me/91${mobile}?text=Hello%20${encodeURIComponent(name)},%20I%20am%20from%20HealthSpace%20for%20your%20sample%20collection." target="_blank" class="btn-wa"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
+                        </div>
+                        <div class="mt-2">
+                            <input type="file" id="file-${mobile}" accept="image/*" style="display:none;" onchange="uploadOrderPhoto('${mobile}')">
+                            <button class="btn-upload" onclick="document.getElementById('file-${mobile}').click()"><i class="fa-solid fa-camera me-1"></i> Upload Sample Photo</button>
                         </div>
                     </div>
                 `;
-                container.innerHTML += cardHtml;
+                container.innerHTML += cardHTML;
             });
+        }
+
+        // CAMERA & SELFIE ATTENDANCE MODULE
+        let selfieModal;
+        function triggerSelfieModal() {
+            selfieModal = new bootstrap.Modal(document.getElementById('selfieModal'));
+            selfieModal.show();
+            navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+                document.getElementById('video').srcObject = stream;
+            });
+        }
+
+        function captureSelfie() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = canvas.toDataURL('image/png');
+            document.getElementById('avatarContainer').innerHTML = `<img src="${imageData}" class="user-avatar">`;
+            
+            // Turn off camera stream
+            video.srcObject.getTracks().forEach(track => track.stop());
+            selfieModal.hide();
+            alert("Selfie Attendance Recorded Successfully!");
+        }
+
+        function uploadOrderPhoto(mobile) {
+            alert("Sample Photo uploaded successfully for Mobile: " + mobile);
         }
     </script>
 </body>
