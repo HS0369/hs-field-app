@@ -1,87 +1,467 @@
 <!DOCTYPE html>
-<html lang="mr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HealthSpace Field App</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --hs-blue: #0098DA; --bg: #F1F5F9; }
-        body { background-color: var(--bg); font-family: system-ui, sans-serif; padding-bottom: 30px; }
-        .header { background: #ffffff; padding: 12px 20px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; }
-        .app-logo { height: 32px; }
-        .order-card { background: #ffffff; border-radius: 12px; border: 1px solid #E2E8F0; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .badge-slot { background: #E0F2FE; color: var(--hs-blue); font-weight: 600; padding: 4px 8px; border-radius: 6px; font-size: 11px; }
-        .btn-call { background: #22C55E; color: white; border-radius: 6px; padding: 8px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; font-size: 13px; }
-        .btn-wa { background: #25D366; color: white; border-radius: 6px; padding: 8px; font-weight: 600; text-decoration: none; text-align: center; flex: 1; font-size: 13px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HS Field App</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f8fa;color:#17324D}
+button,input{font:inherit}
+button{cursor:pointer}
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#fff}
+.login-box{width:min(420px,100%);background:#fff;border:1px solid #e3ebf0;border-radius:20px;padding:25px;box-shadow:0 10px 35px rgba(0,0,0,.07);text-align:center}
+.logo{width:100px;max-height:90px;object-fit:contain}
+.input{width:100%;padding:13px;border:1px solid #d5e0e6;border-radius:10px;margin-top:10px}
+.btn{border:0;border-radius:10px;padding:12px 15px;font-weight:700}
+.btn-primary{background:#0098DA;color:#fff}
+.btn-light{background:#fff;border:1px solid #d9e3e8;color:#17324D}
+.app{display:none;min-height:100vh}
+.header{background:#fff;border-bottom:1px solid #e5edf1;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.profile{display:flex;align-items:center;gap:10px}
+.profile img{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#e9f5fa}
+.container{max-width:900px;margin:auto;padding:14px}
+.dashboard-card{background:#fff;border:1px solid #e3ebef;border-radius:16px;padding:18px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.menu{background:#fff;border:1px solid #e2ebef;border-radius:16px;padding:20px;text-align:center;font-weight:800;box-shadow:0 3px 12px rgba(0,0,0,.04)}
+.stat{font-size:25px;font-weight:800;color:#0098DA}
+.card{background:#fff;border:1px solid #e1e9ed;border-radius:15px;padding:15px;margin:10px 0}
+.card.active{border-color:#0098DA}
+.card h3{font-size:18px;margin:0 0 8px}
+.meta{font-size:14px;line-height:1.7}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions .btn{flex:1;min-width:100px}
+.status{display:inline-block;padding:5px 9px;border-radius:20px;background:#edf7fb;font-size:12px;font-weight:700}
+.back{margin-bottom:10px}
+video{width:100%;max-height:260px;border-radius:12px;background:#111}
+.hidden{display:none!important}
+.error{background:#fff1f2;color:#b91c1c;border:1px solid #fecdd3;padding:10px;border-radius:10px;margin-top:10px}
+.success{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:10px;border-radius:10px;margin-top:10px}
+.empty{text-align:center;color:#687983;padding:35px}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.actions .btn{min-width:90px}.container{padding:10px}}
+</style>
 </head>
 <body>
 
-    <div class="header">
-        <img src="1000531193.png" alt="HealthSpace" class="app-logo" onerror="this.src='https://via.placeholder.com/100x30?text=HealthSpace'">
-        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="fetchOrders()"><i class="fa-solid fa-arrows-rotate me-1"></i> Sync</button>
+<div id="login" class="login">
+  <div class="login-box">
+    <img src="1000531193.png" class="logo" alt="Health Space">
+    <h2 style="margin:8px 0 2px">HS Field App</h2>
+    <div style="color:#6b7780;font-size:13px">Phlebotomist Login</div>
+
+    <input id="loginMobile" class="input" inputmode="numeric" maxlength="10" placeholder="Mobile Number">
+    <input id="loginPassword" class="input" type="password" placeholder="Password">
+
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="validateAndOpenCamera()">Login</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<div id="cameraBox" class="login hidden">
+  <div class="login-box">
+    <h3>Login Selfie</h3>
+    <p style="font-size:13px;color:#687983">Capture your selfie to continue.</p>
+    <video id="video" autoplay playsinline></video>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="captureSelfie()">📸 Capture Selfie</button>
+    <button class="btn btn-light" style="width:100%;margin-top:8px" onclick="cancelCamera()">Back</button>
+    <div id="cameraError"></div>
+  </div>
+</div>
+
+<canvas id="canvas" class="hidden"></canvas>
+
+<div id="app" class="app">
+  <header class="header">
+    <div class="profile">
+      <img id="profilePhoto" src="1000531193.png" alt="">
+      <div>
+        <b id="profileName">Phlebotomist</b>
+        <div style="font-size:12px;color:#71808a">Phlebotomist</div>
+      </div>
+    </div>
+    <button class="btn btn-light" onclick="logout()">Logout</button>
+  </header>
+
+  <div class="container">
+
+    <div id="dashboardScreen">
+      <div class="dashboard-card">
+        <div style="font-size:13px;color:#71808a">Today's / Assigned Collection</div>
+        <div class="stat" id="totalCollection">₹0</div>
+        <div id="syncStatus" style="font-size:12px;color:#71808a;margin-top:3px">Syncing...</div>
+      </div>
+
+      <div class="grid">
+        <div class="menu" onclick="openPatients()">👥<br>Assigned Orders</div>
+        <div class="menu" onclick="openCollected()">✓<br>Collected</div>
+        <div class="menu" onclick="refreshData()">↻<br>Refresh</div>
+        <div class="menu" onclick="logout()">⇥<br>Logout</div>
+      </div>
     </div>
 
-    <div class="container my-3">
-        <h6 class="fw-bold text-muted mb-3">ASSIGNED ORDERS</h6>
-        <div id="ordersList"></div>
+    <div id="patientsScreen" class="hidden">
+      <button class="btn btn-light back" onclick="showDashboard()">← Back</button>
+      <h2 style="margin:5px 0">Assigned Orders</h2>
+      <div id="patientsList"></div>
     </div>
 
-    <script>
-        const API_URL = "YOUR_SCRIPT_DEPLOYMENT_URL";
+    <div id="detailScreen" class="hidden">
+      <button class="btn btn-light back" onclick="openPatients()">← Back</button>
+      <h2 style="margin:5px 0">Patient Details</h2>
+      <div id="detailBox"></div>
+    </div>
 
-        async function fetchOrders() {
-            const list = document.getElementById('ordersList');
-            list.innerHTML = `<div class="text-center py-5"><i class="fa-solid fa-spinner fa-spin text-primary fa-2x mb-2"></i><p class="text-muted small">Loading Orders...</p></div>`;
+    <div id="collectedScreen" class="hidden">
+      <button class="btn btn-light back" onclick="showDashboard()">← Back</button>
+      <h2 style="margin:5px 0">Collected</h2>
+      <div id="collectedList"></div>
+    </div>
 
-            try {
-                const res = await fetch(API_URL + "?action=orders");
-                const data = await res.json();
+  </div>
+</div>
 
-                if (data.status === "success" && data.orders.length > 0) {
-                    renderOrders(data.orders);
-                } else {
-                    list.innerHTML = `<div class="text-center py-5 text-muted"><p>No orders found in Sheet.</p></div>`;
-                }
-            } catch (err) {
-                list.innerHTML = `<div class="text-center py-5 text-danger"><p>Failed to sync orders.</p></div>`;
-            }
-        }
+<script>
+const API='https://script.google.com/macros/library/d/1NM4NrLAbIvL2ZPRlYxRqo4U5IR2orATNp9lqUeWMdlrHwON4_Mrf8lCc/5';
+const SESSION_HOURS=12;
 
-        function renderOrders(orders) {
-            const list = document.getElementById('ordersList');
-            list.innerHTML = '';
+let orders=[];
+let current=null;
+let cameraStream=null;
 
-            orders.slice().reverse().forEach(row => {
-                const date = row[0] ? new Date(row[0]).toLocaleDateString() : 'Today';
-                const name = row[1] || 'Patient';
-                const mobile = row[2] || '';
-                const address = row[3] || 'No Address';
-                const pkg = row[4] || 'Package';
-                const slot = row[5] || 'Slot';
+function esc(v){
+ return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[s]));
+}
+function money(v){return '₹'+Number(v||0).toLocaleString('en-IN')}
 
-                list.innerHTML += `
-                    <div class="order-card">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-bold text-dark">${name}</span>
-                            <span class="badge-slot">${slot}</span>
-                        </div>
-                        <div class="small text-muted mb-1"><i class="fa-solid fa-flask text-primary me-2"></i><b>Package:</b> ${pkg}</div>
-                        <div class="small text-muted mb-1"><i class="fa-solid fa-location-dot text-danger me-2"></i><b>Address:</b> ${address}</div>
-                        <div class="small text-muted mb-3"><i class="fa-solid fa-calendar text-secondary me-2"></i><b>Date:</b> ${date}</div>
+function setScreen(id){
+ ['dashboardScreen','patientsScreen','detailScreen','collectedScreen'].forEach(x=>document.getElementById(x).classList.add('hidden'));
+ document.getElementById(id).classList.remove('hidden');
+}
+function showDashboard(){setScreen('dashboardScreen')}
+function hideLogin(){document.getElementById('login').style.display='none'}
+function showLogin(){document.getElementById('login').style.display='flex';document.getElementById('app').style.display='none'}
 
-                        <div class="d-flex gap-2">
-                            <a href="tel:${mobile}" class="btn-call"><i class="fa-solid fa-phone me-1"></i> Call</a>
-                            <a href="https://wa.me/91${mobile}?text=Hello%20${encodeURIComponent(name)},%20I%20am%20from%20HealthSpace%20for%20your%20sample%20collection." target="_blank" class="btn-wa"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
-                        </div>
-                    </div>
-                `;
-            });
-        }
+function sessionValid(){
+ const t=Number(localStorage.getItem('hs_login_time')||0);
+ const m=localStorage.getItem('hs_mobile');
+ return !!(t&&m&&(Date.now()-t)<SESSION_HOURS*60*60*1000);
+}
 
-        fetchOrders();
-    </script>
+async function apiGet(){
+ const m=localStorage.getItem('hs_mobile');
+ const r=await fetch(API+'?action=getOrders&mobile='+encodeURIComponent(m),{cache:'no-store'});
+ const t=await r.text();
+ let j;
+ try{j=JSON.parse(t)}catch(e){throw new Error('Invalid API response')}
+ if(j.status!=='success') throw new Error(j.message||'Sync failed');
+ return j;
+}
+
+async function loginAfterSelfie(){
+ const m=document.getElementById('loginMobile').value.replace(/\D/g,'');
+ const p=document.getElementById('loginPassword').value;
+
+ try{
+   const r=await fetch(API+'?action=getPhlebo&mobile='+encodeURIComponent(m)+'&password='+encodeURIComponent(p),{cache:'no-store'});
+   const j=await r.json();
+   if(j.status!=='success') throw new Error(j.message||'Login failed');
+
+   localStorage.setItem('hs_mobile',m);
+   localStorage.setItem('hs_name',j.phlebo.name||'Phlebotomist');
+   localStorage.setItem('hs_photo_url',j.phlebo.photoUrl||'');
+   localStorage.setItem('hs_login_time',Date.now());
+
+   stopCamera();
+   document.getElementById('cameraBox').classList.add('hidden');
+   document.getElementById('app').style.display='block';
+   hideLogin();
+
+   applyProfile();
+   await refreshData();
+ }catch(e){
+   document.getElementById('cameraError').innerHTML='<div class="error">'+esc(e.message)+'</div>';
+ }
+}
+
+async function validateAndOpenCamera(){
+ const m=document.getElementById('loginMobile').value.replace(/\D/g,'');
+ const p=document.getElementById('loginPassword').value;
+ if(m.length!==10){document.getElementById('loginError').innerHTML='<div class="error">Enter valid 10 digit mobile.</div>';return}
+ if(p!=='12345'){document.getElementById('loginError').innerHTML='<div class="error">Wrong password.</div>';return}
+
+ try{
+   const r=await fetch(API+'?action=getPhlebo&mobile='+encodeURIComponent(m)+'&password='+encodeURIComponent(p),{cache:'no-store'});
+   const j=await r.json();
+   if(j.status!=='success') throw new Error(j.message||'Phlebotomist not found');
+
+   localStorage.setItem('pending_name',j.phlebo.name||'Phlebotomist');
+   localStorage.setItem('pending_photo_url',j.phlebo.photoUrl||'');
+
+   document.getElementById('login').style.display='none';
+   document.getElementById('cameraBox').classList.remove('hidden');
+
+   try{
+     cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+     document.getElementById('video').srcObject=cameraStream;
+   }catch(err){
+     document.getElementById('cameraError').innerHTML='<div class="error">Camera permission is required. Please allow camera access and try again.</div>';
+   }
+ }catch(e){
+   document.getElementById('loginError').innerHTML='<div class="error">'+esc(e.message)+'</div>';
+ }
+}
+
+function captureSelfie(){
+ const video=document.getElementById('video');
+ const canvas=document.getElementById('canvas');
+
+ if(!video.videoWidth){
+   document.getElementById('cameraError').innerHTML='<div class="error">Camera is not ready. Please wait a moment and try again.</div>';
+   return;
+ }
+
+ canvas.width=480;
+ canvas.height=Math.round(video.videoHeight*(480/video.videoWidth));
+ canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+ localStorage.setItem('hs_selfie',canvas.toDataURL('image/jpeg',0.75));
+
+ loginAfterSelfie();
+}
+
+function cancelCamera(){
+ stopCamera();
+ document.getElementById('cameraBox').classList.add('hidden');
+ document.getElementById('login').style.display='flex';
+}
+
+function stopCamera(){
+ if(cameraStream){
+   cameraStream.getTracks().forEach(t=>t.stop());
+   cameraStream=null;
+ }
+ const v=document.getElementById('video');
+ if(v)v.srcObject=null;
+}
+
+function applyProfile(){
+ document.getElementById('profileName').textContent=localStorage.getItem('hs_name')||'Phlebotomist';
+ const selfie=localStorage.getItem('hs_selfie');
+ const savedUrl=localStorage.getItem('hs_photo_url');
+ document.getElementById('profilePhoto').src=selfie||savedUrl||'1000531193.png';
+}
+
+async function refreshData(){
+ document.getElementById('syncStatus').textContent='Syncing orders...';
+ try{
+   const j=await apiGet();
+   orders=j.orders||[];
+   document.getElementById('totalCollection').textContent=money(j.collectionTotal||0);
+   document.getElementById('syncStatus').textContent='Synced • '+new Date().toLocaleTimeString('en-IN');
+   renderPatients();
+   renderCollected();
+   return true;
+ }catch(e){
+   document.getElementById('syncStatus').textContent='Failed to sync orders';
+   if(document.getElementById('patientsScreen').classList.contains('hidden')===false){
+     document.getElementById('patientsList').innerHTML='<div class="error">'+esc(e.message)+'</div>';
+   }
+   return false;
+ }
+}
+
+function firstPending(){
+ return orders.find(o=>!/(collected|completed)/i.test(o.status));
+}
+
+function renderPatients(){
+ const box=document.getElementById('patientsList');
+ const pending=orders.filter(o=>!/(collected|completed)/i.test(o.status));
+
+ if(!pending.length){
+   box.innerHTML='<div class="empty">No pending assigned orders.</div>';
+   return;
+ }
+
+ const first=firstPending();
+
+ box.innerHTML=pending.map((o)=>{
+   const isFirst=o.row===first.row;
+   const canStart=isFirst && !/started/i.test(o.status);
+   const started=/started/i.test(o.status);
+
+   return `<div class="card ${isFirst?'active':''}">
+     <h3>${esc(o.patientName)}</h3>
+     <div class="meta">
+       📅 ${esc(o.bookingDate||'')}<br>
+       🕒 ${esc(o.time||'')}<br>
+       🧪 ${esc(o.testName||o.package||'')}<br>
+       ₹${Number(o.amount||0).toLocaleString('en-IN')}<br>
+       📍 ${esc(o.address||'')}
+     </div>
+     <div style="margin-top:8px"><span class="status">${esc(o.status||'Pending')}</span></div>
+     <div class="actions">
+       <button class="btn btn-light" onclick="event.stopPropagation();location.href='tel:${esc(o.mobile)}'">📞 Call</button>
+       <button class="btn btn-light" onclick="event.stopPropagation();window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent('${esc(o.address||'')}'),'_blank')">📍 Map</button>
+       <button class="btn btn-primary" onclick="openDetail(${o.row})">${started?'Open':'View'}</button>
+       ${canStart?`<button class="btn btn-primary" onclick="startOrder(${o.row})">Start</button>`:''}
+     </div>
+     ${!isFirst?'<div class="small" style="margin-top:9px;color:#7b8790">Complete the first patient before starting this order.</div>':''}
+   </div>`;
+ }).join('');
+}
+
+function renderCollected(){
+ const box=document.getElementById('collectedList');
+ const arr=orders.filter(o=>/(collected|completed)/i.test(o.status));
+ if(!arr.length){box.innerHTML='<div class="empty">No collected patients yet.</div>';return}
+ box.innerHTML=arr.map(o=>`<div class="card">
+   <h3>${esc(o.patientName)}</h3>
+   <div class="meta">
+     🧪 ${esc(o.testName||o.package||'')}<br>
+     ₹${Number(o.amount||0).toLocaleString('en-IN')}<br>
+     📅 ${esc(o.bookingDate||'')} • 🕒 ${esc(o.time||'')}
+   </div>
+   <div style="margin-top:8px"><span class="status">Collected</span></div>
+ </div>`).join('');
+}
+
+function openPatients(){
+ setScreen('patientsScreen');
+ renderPatients();
+}
+function openCollected(){
+ setScreen('collectedScreen');
+ renderCollected();
+}
+function openDetail(row){
+ current=orders.find(o=>Number(o.row)===Number(row));
+ if(!current){alert('Order not found. Please refresh.');return}
+ setScreen('detailScreen');
+ renderDetail();
+}
+
+function renderDetail(){
+ const o=current;
+ const started=/started/i.test(o.status);
+ const completed=/(collected|completed)/i.test(o.status);
+
+ document.getElementById('detailBox').innerHTML=`
+ <div class="card">
+   <h3>${esc(o.patientName)}</h3>
+   <div class="meta">
+     📱 ${esc(o.mobile)}<br>
+     📅 ${esc(o.bookingDate||'')}<br>
+     🕒 ${esc(o.time||'')}<br>
+     🧪 ${esc(o.testName||o.package||'')}<br>
+     💰 Total: ₹${Number(o.amount||0).toLocaleString('en-IN')}<br>
+     💳 Payment: ${esc(o.paymentStatus||'Pending')}<br>
+     📍 ${esc(o.address||'')}
+   </div>
+ </div>
+
+ <div class="card">
+   <b>Service Status</b>
+   <div style="margin-top:8px"><span class="status">${esc(o.status||'Pending')}</span></div>
+
+   <div class="actions">
+     ${!started&&!completed?`<button class="btn btn-primary" onclick="startOrder(${o.row})">Start Service</button>`:''}
+     ${started&&!completed?`<button class="btn btn-primary" onclick="completeOrder(${o.row})">Complete Patient</button>`:''}
+   </div>
+ </div>
+
+ <div class="card">
+   <b>Tube Photo</b>
+   ${o.imageUrl?`<div class="success">Photo uploaded ✓</div><a href="${esc(o.imageUrl)}" target="_blank">View uploaded photo</a>`:''}
+   <input id="tubePhoto" class="input" type="file" accept="image/*" capture="environment">
+   <button class="btn btn-primary" style="width:100%;margin-top:9px" onclick="uploadTubePhoto()">Upload Tubes Photo</button>
+ </div>`;
+}
+
+async function post(data){
+ const r=await fetch(API,{
+   method:'POST',
+   headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+   body:new URLSearchParams(data)
+ });
+ const t=await r.text();
+ let j;
+ try{j=JSON.parse(t)}catch(e){throw new Error('Invalid API response')}
+ if(j.status!=='success')throw new Error(j.message||'Request failed');
+ return j;
+}
+
+async function startOrder(row){
+ try{
+   const j=await post({action:'start',row:row,mobile:localStorage.getItem('hs_mobile')});
+   alert(j.message);
+   await refreshData();
+   current=orders.find(o=>Number(o.row)===Number(row));
+   if(current){setScreen('detailScreen');renderDetail()}else{openPatients()}
+ }catch(e){alert(e.message)}
+}
+
+async function uploadTubePhoto(){
+ const file=document.getElementById('tubePhoto').files[0];
+ if(!file){alert('Please select tube photo.');return}
+ if(!current){return}
+
+ const reader=new FileReader();
+ reader.onload=async()=>{
+   try{
+     const img=reader.result.split(',');
+     const j=await post({
+       action:'upload',
+       row:current.row,
+       mobile:localStorage.getItem('hs_mobile'),
+       file:img[1],
+       mimeType:file.type||'image/jpeg',
+       filename:'HS_Tube_'+current.row+'_'+Date.now()+'.jpg'
+     });
+     alert(j.message);
+     await refreshData();
+     current=orders.find(o=>Number(o.row)===Number(current.row));
+     renderDetail();
+   }catch(e){alert(e.message)}
+ };
+ reader.readAsDataURL(file);
+}
+
+async function completeOrder(row){
+ if(!confirm('Complete this patient?'))return;
+ try{
+   const j=await post({action:'complete',row:row,mobile:localStorage.getItem('hs_mobile')});
+   alert(j.message);
+   await refreshData();
+   openCollected();
+ }catch(e){alert(e.message)}
+}
+
+function logout(){
+ stopCamera();
+ ['hs_mobile','hs_name','hs_photo_url','hs_login_time','hs_selfie','pending_name','pending_photo_url'].forEach(k=>localStorage.removeItem(k));
+ orders=[];
+ showLogin();
+}
+
+async function boot(){
+ if(sessionValid()){
+   document.getElementById('app').style.display='block';
+   hideLogin();
+   applyProfile();
+   await refreshData();
+ }else{
+   showLogin();
+ }
+}
+
+boot();
+setInterval(()=>{
+ if(sessionValid() && document.getElementById('app').style.display!=='none'){
+   refreshData();
+ }else if(!sessionValid() && localStorage.getItem('hs_mobile')){
+   logout();
+ }
+},60000);
+</script>
 </body>
 </html>
